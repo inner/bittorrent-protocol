@@ -18,7 +18,7 @@ var command = Array.IndexOf(programArgs, "decode") != -1
 if (command == "decode")
 {
     var encodedValue = args[1];
-    if (Char.IsDigit(encodedValue[0]))
+    if (char.IsDigit(encodedValue[0]))
     {
         // Example: "5:hello" -> "hello"
         var colonIndex = encodedValue.IndexOf(':');
@@ -33,9 +33,16 @@ if (command == "decode")
             throw new InvalidOperationException("Invalid encoded value: " + encodedValue);
         }
     }
+    // parse integer.
+    // Integers are encoded as i<number>e. For example, 52 is encoded as i52e and -52 is encoded as i-52e.
+    else if (encodedValue[0] == 'i')
+    {
+        var intValue = int.Parse(encodedValue[1..^1]);
+        Console.WriteLine(JsonSerializer.Serialize(intValue));
+    }
     else
     {
-        throw new InvalidOperationException("Unhandled encoded value: " + encodedValue);
+        throw new InvalidOperationException("Invalid encoded value: " + encodedValue);
     }
 }
 else
