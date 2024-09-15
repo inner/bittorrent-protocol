@@ -37,8 +37,8 @@ if (command == "decode")
     // Integers are encoded as i<number>e. For example, 52 is encoded as i52e and -52 is encoded as i-52e.
     else if (encodedValue[0] == 'i')
     {
-        var intValue = int.Parse(encodedValue[1..^1]);
-        Console.WriteLine(JsonSerializer.Serialize(intValue));
+        var longValue = long.Parse(encodedValue[1..^1]);
+        Console.WriteLine(JsonSerializer.Serialize(longValue));
     }
     else
     {
