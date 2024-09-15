@@ -40,24 +40,6 @@ if (command == "decode")
     }
     // Running ./your_bittorrent.sh decode l5:applei988ee
     // Expected output: ["apple",988]
-    else if (encodedValue[0] == 'l')
-    {
-        var listValue = new List<object>();
-        var i = 1;
-        while (i < encodedValue.Length - 1)
-        {
-            var item = encodedValue[i] switch
-            {
-                'i' => long.Parse(encodedValue[(i + 1)..encodedValue.IndexOf('e', i + 1)]),
-                'l' => throw new InvalidOperationException("Nested lists are not supported"),
-                'd' => throw new InvalidOperationException("Dictionaries are not supported"),
-                _ => throw new InvalidOperationException("Invalid list item")
-            };
-            listValue.Add(item);
-            i = encodedValue.IndexOf('e', i + 1) + 1;
-        }
-        Console.WriteLine(JsonSerializer.Serialize(listValue));
-    }
     else
     {
         throw new InvalidOperationException("Invalid encoded value: " + encodedValue);
