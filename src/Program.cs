@@ -1,17 +1,23 @@
 using System.Text.Json;
 
-var (command, param) = args.Length switch
-{
-    0 => throw new InvalidOperationException("Usage: your_bittorrent.sh <command> <param>"),
-    1 => throw new InvalidOperationException("Usage: your_bittorrent.sh <command> <param>"),
-    _ => (args[0], args[1])
-};
+// var (command, param) = args.Length switch
+// {
+//     0 => throw new InvalidOperationException("Usage: your_bittorrent.sh <command> <param>"),
+//     1 => throw new InvalidOperationException("Usage: your_bittorrent.sh <command> <param>"),
+//     _ => (args[0], args[1])
+// };
+
+var programArgs = args
+    .Select(x => x.Replace("\"", string.Empty))
+    .ToArray();
+
+var command = Array.IndexOf(programArgs, "decode") != -1
+    ? "decode"
+    : throw new InvalidOperationException("Usage: your_bittorrent.sh decode <param>");
 
 if (command == "decode")
 {
-    Console.WriteLine("Logs from your program will appear here!");
-
-    var encodedValue = param;
+    var encodedValue = args[1];
     if (Char.IsDigit(encodedValue[0]))
     {
         // Example: "5:hello" -> "hello"
