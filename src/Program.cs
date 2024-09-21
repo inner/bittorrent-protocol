@@ -1,11 +1,5 @@
 using System.Text.Json;
-
-// var (command, param) = args.Length switch
-// {
-//     0 => throw new InvalidOperationException("Usage: your_bittorrent.sh <command> <param>"),
-//     1 => throw new InvalidOperationException("Usage: your_bittorrent.sh <command> <param>"),
-//     _ => (args[0], args[1])
-// };
+using codecrafters_bittorrent;
 
 var programArgs = args
     .Select(x => x.Replace("\"", string.Empty))
@@ -17,33 +11,9 @@ var command = Array.IndexOf(programArgs, "decode") != -1
 
 if (command == "decode")
 {
-    var encodedValue = args[1];
-    if (char.IsDigit(encodedValue[0]))
-    {
-        // Example: "5:hello" -> "hello"
-        var colonIndex = encodedValue.IndexOf(':');
-        if (colonIndex != -1)
-        {
-            var strLength = int.Parse(encodedValue[..colonIndex]);
-            var strValue = encodedValue.Substring(colonIndex + 1, strLength);
-            Console.WriteLine(JsonSerializer.Serialize(strValue));
-        }
-        else
-        {
-            throw new InvalidOperationException("Invalid encoded value: " + encodedValue);
-        }
-    }
-    else if (encodedValue[0] == 'i')
-    {
-        var longValue = long.Parse(encodedValue[1..^1]);
-        Console.WriteLine(JsonSerializer.Serialize(longValue));
-    }
-    // Running ./your_bittorrent.sh decode l5:applei988ee
-    // Expected output: ["apple",988]
-    else
-    {
-        throw new InvalidOperationException("Invalid encoded value: " + encodedValue);
-    }
+    var encodingTypeValue = args[1] ?? throw new ArgumentNullException(args[1]);
+    var decodedResult = Decoder.Decode(encodingTypeValue);
+    Console.WriteLine(JsonSerializer.Serialize(decodedResult));
 }
 else
 {
