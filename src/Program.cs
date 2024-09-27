@@ -12,7 +12,8 @@ var command = Array.IndexOf(programArgs, "decode") != -1
 if (command == "decode")
 {
     var encodingTypeValue = args[1] ?? throw new ArgumentNullException(args[1]);
-    var decodedResult = Decoder.Decode(encodingTypeValue);
+    var index = 0;
+    var decodedResult = Decoder.Decode(ref encodingTypeValue, ref index);
     Console.WriteLine(JsonSerializer.Serialize(decodedResult));
 }
 else

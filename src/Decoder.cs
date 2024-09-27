@@ -2,110 +2,70 @@ namespace codecrafters_bittorrent;
 
 public static class Decoder
 {
-    public static object Decode(string encodedValue)
+    public static object Decode(ref string encodedValue, ref int index)
     {
         if (string.IsNullOrWhiteSpace(encodedValue))
             throw new ArgumentNullException(nameof(encodedValue));
+        
+        var bencodingType = encodedValue.ToBencodingType(ref index);
+        var decodedValue = bencodingType switch
+        {
+            BencodingType.String => DecodeString(ref encodedValue, ref index),
+            BencodingType.Integer => DecodeInteger(ref encodedValue, ref index),
+            BencodingType.List => DecodeList(ref encodedValue, ref index),
+            BencodingType.Dictionary => DecodeDictionary(ref encodedValue, ref index),
+            _ => throw new ArgumentException("Invalid bencoding type: " + bencodingType)
+        };
 
-        var bencodingType = encodedValue.ToBencodingType();
-        var decoderAction = Map[bencodingType];
-        return decoderAction.Invoke(encodedValue);
+        return decodedValue;
     }
 
-    private static readonly Dictionary<BencodingType, Func<string, object>> Map = new()
+    private static object DecodeString(ref string encodedValue, ref int index)
     {
-        { BencodingType.String, DecodeString },
-        { BencodingType.Integer, DecodeInteger },
-        { BencodingType.List, DecodeList },
-        { BencodingType.Dictionary, DecodeDictionary }
-    };
-
-    private static object DecodeString(string encodedValue)
-    {
-        var colonIndex = encodedValue.IndexOf(':');
-        if (colonIndex == -1)
-            ThrowInvalidEncodedValue(encodedValue);
-
-        var strLength = int.Parse(encodedValue[..colonIndex]);
-        return encodedValue.Substring(colonIndex + 1, strLength);
+        var colonIndex = encodedValue.IndexOf(':', index);
+        var length = int.Parse(encodedValue.Substring(index, colonIndex - index));
+        index = colonIndex + 1;
+        var value = encodedValue.Substring(index, length);
+        index += length;
+        return value;
     }
 
-    private static object DecodeInteger(string encodedValue)
+    private static object DecodeInteger(ref string encodedValue, ref int index)
     {
-        var endIndex = encodedValue.IndexOf('e');
-        if (endIndex == -1)
-            ThrowInvalidEncodedValue(encodedValue);
-
-        return long.Parse(encodedValue[1..endIndex]);
+        index++;
+        var end = encodedValue.IndexOf('e', index);
+        var value = long.Parse(encodedValue.Substring(index, end - index));
+        index = end + 1;
+        return value;
     }
 
-    private static object DecodeList(string encodedValue)
+    private static object DecodeList(ref string encodedValue, ref int index)
     {
         var list = new List<object>();
+        index++;
 
-        var listContents = encodedValue.AsSpan(1, encodedValue.Length - 2);
-        if (listContents.IsEmpty)
-            return list;
-
-        while (listContents.Length > 0)
+        while (encodedValue[index] != 'e')
         {
-            var bencodingType = listContents.ToString().ToBencodingType();
-            var decoderAction = Map[bencodingType];
-            var decodedValue = decoderAction.Invoke(listContents.ToString());
-            list.Add(decodedValue);
-
-            switch (bencodingType)
-            {
-                case BencodingType.String:
-                {
-                    var lenToRemove = decodedValue.ToString()!.Length + 2;
-                    listContents = listContents.Slice(lenToRemove);
-                    break;
-                }
-                case BencodingType.Integer:
-                {
-                    var lenToRemove = decodedValue.ToString()!.Length + 2;
-                    listContents = listContents.Slice(lenToRemove);
-                    break;
-                }
-                // handle this:
-                // decode lli105e5:mangoee
-                default:
-                    throw new ArgumentException("Invalid bencoding type: " + bencodingType);
-            }
+            list.Add(Decode(ref encodedValue, ref index));
         }
 
+        index++;
         return list;
     }
 
-    private static object DecodeDictionary(string encodedValue)
+    private static object DecodeDictionary(ref string encodedValue, ref int index)
     {
         var dictionary = new Dictionary<string, object>();
-        var index = 1;
-        while (index < encodedValue.Length - 1)
+        index++;
+
+        while (encodedValue[index] != 'e')
         {
-            var key = encodedValue[index..];
-            var keyBencodingType = key.ToBencodingType();
-            if (keyBencodingType != BencodingType.String)
-                ThrowInvalidEncodedValue(key);
-
-            var keyDecoderAction = Map[keyBencodingType];
-            var decodedKey = (string)keyDecoderAction.Invoke(key);
-            index += key.Length;
-
-            var value = encodedValue[index..];
-            var valueBencodingType = value.ToBencodingType();
-            var valueDecoderAction = Map[valueBencodingType];
-            var decodedValue = valueDecoderAction.Invoke(value);
-            dictionary.Add(decodedKey, decodedValue);
-            index += value.Length;
+            var key = DecodeString(ref encodedValue, ref index);
+            var value = Decode(ref encodedValue, ref index);
+            dictionary.Add((string)key, value);
         }
 
+        index++;
         return dictionary;
-    }
-
-    private static void ThrowInvalidEncodedValue(string encodedValue)
-    {
-        throw new InvalidOperationException("Invalid encoded value: " + encodedValue);
     }
 }
