@@ -1,6 +1,6 @@
 namespace codecrafters_bittorrent;
 
-public static class Decoder
+public static class BencodeDecoder
 {
     public static object Decode(ref string encodedValue, ref int index)
     {
