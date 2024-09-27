@@ -53,7 +53,7 @@ public static class Decoder
         return list;
     }
 
-    private static object DecodeDictionary(ref string encodedValue, ref int index)
+    public static Dictionary<string, object> DecodeDictionary(ref string encodedValue, ref int index)
     {
         var dictionary = new Dictionary<string, object>();
         index++;
