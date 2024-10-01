@@ -1,58 +1,74 @@
 using System.Text;
 
 namespace codecrafters_bittorrent;
-
 public static class BencodeEncoder
 {
-    public static string Encode(object value)
+    public static byte[] Encode(object value)
     {
         return value switch
         {
-            string stringValue => EncodeString(stringValue),
-            long longValue => EncodeInteger(longValue),
-            int intValue => EncodeInteger(intValue),
-            List<object> listValue => EncodeList(listValue),
-            Dictionary<string, object> dictionaryValue => EncodeDictionary(dictionaryValue),
-            _ => throw new ArgumentException("Invalid value type: " + value.GetType())
+            string str => EncodeString(Encoding.UTF8.GetBytes(str)),
+            byte[] bytes => EncodeString(bytes),
+            long lng => EncodeInteger(lng),
+            List<object> list => EncodeList(list),
+            Dictionary<byte[], object> dict => EncodeDictionary(dict),
+            _ => throw new ArgumentException($"Invalid value type: {value.GetType()}")
         };
     }
 
-    private static string EncodeString(string value)
+    private static byte[] EncodeString(byte[] value)
     {
-        return $"{value.Length}:{value}";
+        var length = Encoding.UTF8.GetBytes(value.Length.ToString());
+        var colon = new[] { (byte)':' };
+        return Combine(length, colon, value);
     }
 
-    private static string EncodeInteger(long value)
+    private static byte[] EncodeInteger(long value)
     {
-        return $"i{value}e";
+        var prefix = new[] { (byte)'i' };
+        var suffix = new[] { (byte)'e' };
+        var valueBytes = Encoding.UTF8.GetBytes(value.ToString());
+        return Combine(prefix, valueBytes, suffix);
     }
 
-    private static string EncodeList(List<object> value)
+    private static byte[] EncodeList(List<object> value)
     {
-        var sb = new StringBuilder();
-        sb.Append('l');
+        var bytes = new List<byte> { (byte)'l' };
 
         foreach (var item in value)
         {
-            sb.Append(Encode(item));
+            bytes.AddRange(Encode(item));
         }
 
-        sb.Append('e');
-        return sb.ToString();
+        bytes.Add((byte)'e');
+        return bytes.ToArray();
     }
 
-    public static string EncodeDictionary(Dictionary<string, object> value)
+    public static byte[] EncodeDictionary(Dictionary<byte[], object> value)
     {
-        var sb = new StringBuilder();
-        sb.Append('d');
-
+        var bytes = new List<byte> { (byte)'d' };
+        
         foreach (var key in value.Keys)
         {
-            sb.Append(EncodeString(key));
-            sb.Append(Encode(value[key]));
+            var k = EncodeString(key);
+            bytes.AddRange(k);
+            bytes.AddRange(Encode(value[key]));
         }
 
-        sb.Append('e');
-        return sb.ToString();
+        bytes.Add((byte)'e');
+        return bytes.ToArray();
+    }
+
+    private static byte[] Combine(params byte[][] arrays)
+    {
+        var combined = new byte[arrays.Sum(a => a.Length)];
+        var offset = 0;
+        foreach (var array in arrays)
+        {
+            Buffer.BlockCopy(array, 0, combined, offset, array.Length);
+            offset += array.Length;
+        }
+
+        return combined;
     }
 }

@@ -1,12 +1,14 @@
+using System.Text;
+
 namespace codecrafters_bittorrent;
 
 public static class BencodeDecoder
 {
-    public static object Decode(ref string encodedValue, ref int index)
+    public static object Decode(ref byte[] encodedValue, ref int index)
     {
-        if (string.IsNullOrWhiteSpace(encodedValue))
+        if (encodedValue == null || encodedValue.Length == 0)
             throw new ArgumentNullException(nameof(encodedValue));
-        
+
         var bencodingType = encodedValue.ToBencodingType(ref index);
         var decodedValue = bencodingType switch
         {
@@ -20,31 +22,32 @@ public static class BencodeDecoder
         return decodedValue;
     }
 
-    private static object DecodeString(ref string encodedValue, ref int index)
+    private static byte[] DecodeString(ref byte[] encodedValue, ref int index)
     {
-        var colonIndex = encodedValue.IndexOf(':', index);
-        var length = int.Parse(encodedValue.Substring(index, colonIndex - index));
+        var colonIndex = Array.IndexOf(encodedValue, (byte)':', index);
+        var length = int.Parse(Encoding.ASCII.GetString(encodedValue, index, colonIndex - index));
         index = colonIndex + 1;
-        var value = encodedValue.Substring(index, length);
+        var value = new byte[length];
+        Array.Copy(encodedValue, index, value, 0, length);
         index += length;
         return value;
     }
 
-    private static object DecodeInteger(ref string encodedValue, ref int index)
+    private static object DecodeInteger(ref byte[] encodedValue, ref int index)
     {
         index++;
-        var end = encodedValue.IndexOf('e', index);
-        var value = long.Parse(encodedValue.Substring(index, end - index));
+        var end = Array.IndexOf(encodedValue, (byte)'e', index);
+        var value = long.Parse(Encoding.ASCII.GetString(encodedValue, index, end - index));
         index = end + 1;
         return value;
     }
 
-    private static object DecodeList(ref string encodedValue, ref int index)
+    private static object DecodeList(ref byte[] encodedValue, ref int index)
     {
         var list = new List<object>();
         index++;
 
-        while (encodedValue[index] != 'e')
+        while (encodedValue[index] != (byte)'e')
         {
             list.Add(Decode(ref encodedValue, ref index));
         }
@@ -53,19 +56,53 @@ public static class BencodeDecoder
         return list;
     }
 
-    public static Dictionary<string, object> DecodeDictionary(ref string encodedValue, ref int index)
+    public static Dictionary<byte[], object> DecodeDictionary(ref byte[] encodedValue, ref int index)
     {
-        var dictionary = new Dictionary<string, object>();
+        var dictionary = new Dictionary<byte[], object>(new ByteArrayEqualityComparer());
         index++;
 
-        while (encodedValue[index] != 'e')
+        while (encodedValue[index] != (byte)'e')
         {
             var key = DecodeString(ref encodedValue, ref index);
             var value = Decode(ref encodedValue, ref index);
-            dictionary.Add((string)key, value);
+            dictionary.Add(key, value);
         }
 
         index++;
         return dictionary;
+    }
+
+    private class ByteArrayEqualityComparer : IEqualityComparer<byte[]>
+    {
+        public bool Equals(byte[]? x, byte[]? y)
+        {
+            if (x == null || y == null)
+                return x == y;
+            if (x.Length != y.Length)
+                return false;
+            for (var i = 0; i < x.Length; i++)
+            {
+                if (x[i] != y[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        public int GetHashCode(byte[]? obj)
+        {
+            if (obj == null)
+                return 0;
+            unchecked
+            {
+                var hash = 17;
+                foreach (var b in obj)
+                {
+                    hash = hash * 31 + b;
+                }
+
+                return hash;
+            }
+        }
     }
 }

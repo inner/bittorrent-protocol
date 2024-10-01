@@ -12,6 +12,15 @@
     <None Update="sample.torrent">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="codercat.gif.torrent">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="congratulations.gif.torrent">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="itsworking.gif.torrent">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -1,21 +1,23 @@
+using System.Text;
+
 namespace codecrafters_bittorrent;
 
 public static class Extensions
 {
-    public static BencodingType ToBencodingType(this string encodedValue, ref int index)
+    public static BencodingType ToBencodingType(this byte[] encodedValue, ref int index)
     {
-        if (string.IsNullOrWhiteSpace(encodedValue))
+        if (encodedValue == null || encodedValue.Length == 0)
             throw new ArgumentNullException(nameof(encodedValue));
 
-        if (char.IsDigit(encodedValue[index]))
+        if (char.IsDigit((char)encodedValue[index]))
             return BencodingType.String;
 
         return encodedValue[index] switch
         {
-            'i' => BencodingType.Integer,
-            'l' => BencodingType.List,
-            'd' => BencodingType.Dictionary,
-            _ => throw new InvalidOperationException("Invalid encoded value: " + encodedValue)
+            (byte)'i' => BencodingType.Integer,
+            (byte)'l' => BencodingType.List,
+            (byte)'d' => BencodingType.Dictionary,
+            _ => throw new InvalidOperationException("Invalid encoded value: " + Encoding.UTF8.GetString(encodedValue))
         };
     }
 }
