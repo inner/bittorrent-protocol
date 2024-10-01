@@ -25,25 +25,23 @@ switch (command)
                 foreach (var kvp in byteDict)
                 {
                     var keyString = Encoding.UTF8.GetString(kvp.Key);
-                    if (kvp.Value is byte[] valueBytes)
+                    switch (kvp.Value)
                     {
-                        // Convert byte array to UTF-8 string directly
-                        var valueString = Encoding.UTF8.GetString(valueBytes);
-                        stringDict[keyString] = valueString;
-                    }
-                    else if (kvp.Value is Dictionary<byte[], object> nestedDict)
-                    {
-                        // Handle nested dictionaries
-                        stringDict[keyString] = DecodeNestedValue(nestedDict);
-                    }
-                    else if (kvp.Value is List<object> list)
-                    {
-                        // Handle lists
-                        stringDict[keyString] = DecodeNestedValue(list);
-                    }
-                    else
-                    {
-                        stringDict[keyString] = kvp.Value;
+                        case byte[] valueBytes:
+                        {
+                            var valueString = Encoding.UTF8.GetString(valueBytes);
+                            stringDict[keyString] = valueString;
+                            break;
+                        }
+                        case Dictionary<byte[], object> nestedDict:
+                            stringDict[keyString] = DecodeNestedValue(nestedDict);
+                            break;
+                        case List<object> list:
+                            stringDict[keyString] = DecodeNestedValue(list);
+                            break;
+                        default:
+                            stringDict[keyString] = kvp.Value;
+                            break;
                     }
                 }
 
@@ -51,11 +49,9 @@ switch (command)
                 break;
             }
             case List<object> list:
-                // Handle lists directly
                 result = DecodeNestedValue(list);
                 break;
             case byte[] byteArray:
-                // Handle plain byte arrays as UTF-8 strings
                 result = Encoding.UTF8.GetString(byteArray);
                 break;
         }
@@ -94,36 +90,35 @@ return;
 
 static object DecodeNestedValue(object value)
 {
-    if (value is byte[] valueBytes)
+    switch (value)
     {
-        // Convert byte array to UTF-8 string
-        return Encoding.UTF8.GetString(valueBytes);
-    }
-
-    if (value is Dictionary<byte[], object> nestedDict)
-    {
-        var nestedDictString = new Dictionary<string, object>();
-        foreach (var nestedKvp in nestedDict)
+        case byte[] valueBytes:
+            // Convert byte array to UTF-8 string
+            return Encoding.UTF8.GetString(valueBytes);
+        case Dictionary<byte[], object> nestedDict:
         {
-            string nestedKeyString = Encoding.UTF8.GetString(nestedKvp.Key);
-            nestedDictString[nestedKeyString] = DecodeNestedValue(nestedKvp.Value);
+            var nestedDictString = new Dictionary<string, object>();
+            foreach (var nestedKvp in nestedDict)
+            {
+                var nestedKeyString = Encoding.UTF8.GetString(nestedKvp.Key);
+                nestedDictString[nestedKeyString] = DecodeNestedValue(nestedKvp.Value);
+            }
+
+            return nestedDictString;
         }
-
-        return nestedDictString;
-    }
-
-    if (value is List<object> list)
-    {
-        var listString = new List<object>();
-        foreach (var item in list)
+        case List<object> list:
         {
-            listString.Add(DecodeNestedValue(item));
+            var listString = new List<object>();
+            foreach (var item in list)
+            {
+                listString.Add(DecodeNestedValue(item));
+            }
+
+            return listString;
         }
-
-        return listString;
+        default:
+            return value;
     }
-
-    return value;
 }
 
 string CalculateInfoHash(byte[] bencodedBytes)
