@@ -73,7 +73,7 @@ switch (command)
         infoDictionary.TryGetValue("piece length"u8.ToArray(), out var pieceLength);
         infoDictionary.TryGetValue("pieces"u8.ToArray(), out var piecesValue);
 
-        var pieces = (byte[])piecesValue;
+        var pieces = (byte[])piecesValue!;
         var bencodedInfo = BencodeEncoder.EncodeDictionary(infoDictionary);
         var infoHashString = CalculateInfoHash(bencodedInfo);
 
@@ -100,21 +100,11 @@ switch (command)
 
 return;
 
-static string StringifyHash(byte[] hashBytes, int startIndex = 0, int length = -1)
-{
-    return BitConverter
-        .ToString(hashBytes, startIndex,
-            length <= -1 ? hashBytes.Length : length)
-        .Replace("-", "")
-        .ToLower();
-}
-
 static object DecodeNestedValue(object value)
 {
     switch (value)
     {
         case byte[] valueBytes:
-            // Convert byte array to UTF-8 string
             return Encoding.UTF8.GetString(valueBytes);
         case Dictionary<byte[], object> nestedDict:
         {
