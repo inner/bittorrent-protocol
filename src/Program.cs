@@ -69,16 +69,28 @@ switch (command)
         var index = 0;
         var result = BencodeDecoder.DecodeDictionary(ref torrentInfoInBytes, ref index);
         var infoDictionary = (Dictionary<byte[], object>)result["info"u8.ToArray()];
+        
+        infoDictionary.TryGetValue("piece length"u8.ToArray(), out var pieceLength);
+        infoDictionary.TryGetValue("pieces"u8.ToArray(), out var piecesValue);
+
+        var pieces = (byte[])piecesValue;
         var bencodedInfo = BencodeEncoder.EncodeDictionary(infoDictionary);
         var infoHashString = CalculateInfoHash(bencodedInfo);
 
         var trackerUrlMessage = $"Tracker URL: {Encoding.UTF8.GetString((byte[])result["announce"u8.ToArray()])}";
         var lengthMessage = $"Length: {((Dictionary<byte[], object>)result["info"u8.ToArray()])["length"u8.ToArray()]}";
         var infoHashMessage = $"Info Hash: {infoHashString}";
+        var pieceLengthMessage = $"Piece Length: {pieceLength}";
 
         Console.WriteLine(trackerUrlMessage);
         Console.WriteLine(lengthMessage);
         Console.WriteLine(infoHashMessage);
+        Console.WriteLine(pieceLengthMessage);
+        Console.WriteLine("Piece Hashes:");
+        foreach (var hashChunk in pieces.Chunk(20))
+        {
+            Console.WriteLine(BitConverter.ToString(hashChunk).Replace("-", "").ToLower());
+        }
 
         break;
     }
@@ -87,6 +99,15 @@ switch (command)
 }
 
 return;
+
+static string StringifyHash(byte[] hashBytes, int startIndex = 0, int length = -1)
+{
+    return BitConverter
+        .ToString(hashBytes, startIndex,
+            length <= -1 ? hashBytes.Length : length)
+        .Replace("-", "")
+        .ToLower();
+}
 
 static object DecodeNestedValue(object value)
 {
