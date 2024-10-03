@@ -69,7 +69,7 @@ switch (command)
         var index = 0;
         var result = BencodeDecoder.DecodeDictionary(ref torrentInfoInBytes, ref index);
         var infoDictionary = (Dictionary<byte[], object>)result["info"u8.ToArray()];
-        
+
         infoDictionary.TryGetValue("piece length"u8.ToArray(), out var pieceLength);
         infoDictionary.TryGetValue("pieces"u8.ToArray(), out var piecesValue);
 
@@ -77,7 +77,8 @@ switch (command)
         var bencodedInfo = BencodeEncoder.EncodeDictionary(infoDictionary);
         var infoHashString = CalculateInfoHash(bencodedInfo);
 
-        var trackerUrlMessage = $"Tracker URL: {Encoding.UTF8.GetString((byte[])result["announce"u8.ToArray()])}";
+        var trackerUrl = Encoding.UTF8.GetString((byte[])result["announce"u8.ToArray()]);
+        var trackerUrlMessage = $"Tracker URL: {trackerUrl}";
         var lengthMessage = $"Length: {((Dictionary<byte[], object>)result["info"u8.ToArray()])["length"u8.ToArray()]}";
         var infoHashMessage = $"Info Hash: {infoHashString}";
         var pieceLengthMessage = $"Piece Length: {pieceLength}";
@@ -94,6 +95,10 @@ switch (command)
 
         break;
     }
+    case "peers":
+        var torrentBytes = File.ReadAllBytes(args[1] ?? throw new ArgumentNullException(args[1]));
+        var torrent = new Torrent(torrentBytes);
+        break;
     default:
         throw new InvalidOperationException($"Invalid command: {command}");
 }
