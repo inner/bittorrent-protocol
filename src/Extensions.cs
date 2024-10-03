@@ -21,7 +21,7 @@ public static class Extensions
             _ => throw new InvalidOperationException("Invalid encoded value: " + Encoding.UTF8.GetString(encodedValue))
         };
     }
-    
+
     public static Dictionary<byte[], object> ToDictionary(this byte[] torrentBytes)
     {
         var index = 0;
@@ -34,38 +34,44 @@ public static class Extensions
         var infoDictionary = (Dictionary<byte[], object>)torrentDictionary["info"u8.ToArray()];
         return infoDictionary;
     }
-    
+
     public static byte[] ToPiecesInBytes(this Dictionary<byte[], object> infoDictionary)
     {
         var piecesInBytes = (byte[])infoDictionary["pieces"u8.ToArray()];
         return piecesInBytes;
     }
-    
-    public static string ToInfoHash(this Dictionary<byte[], object> infoDictionary)
+
+    public static string ToInfoHashHex(this byte[] infoHash)
     {
-        return BencodeEncoder.EncodeDictionary(infoDictionary).CalculateInfoHash();
+        return BitConverter.ToString(infoHash).Replace("-", "").ToLower();
     }
-    
+
+    public static byte[] ToInfoHash(this Dictionary<byte[], object> infoDictionary)
+    {
+        var bencodedInfo = BencodeEncoder.EncodeDictionary(infoDictionary);
+        return SHA1.HashData(bencodedInfo);
+    }
+
     public static string ToTrackerUrl(this Dictionary<byte[], object> torrentDictionary)
     {
         return Encoding.UTF8.GetString((byte[])torrentDictionary["announce"u8.ToArray()]);
     }
-    
+
     public static string ToName(this Dictionary<byte[], object> infoDictionary)
     {
         return Encoding.UTF8.GetString((byte[])infoDictionary["name"u8.ToArray()]);
     }
-    
+
     public static long ToLength(this Dictionary<byte[], object> infoDictionary)
     {
         return (long)infoDictionary["length"u8.ToArray()];
     }
-    
+
     public static long ToPieceLength(this Dictionary<byte[], object> infoDictionary)
     {
         return (long)infoDictionary["piece length"u8.ToArray()];
     }
-    
+
     public static List<string> ToPieceHashes(this byte[] piecesInBytes)
     {
         var pieces = new List<string>();
@@ -76,15 +82,5 @@ public static class Extensions
         }
 
         return pieces;
-    }
-
-    private static string CalculateInfoHash(this byte[] bencodedBytes)
-    {
-        var infoHash = SHA1.HashData(bencodedBytes);
-
-        var infoHashString = BitConverter.ToString(infoHash)
-            .Replace("-", "").ToLower();
-
-        return infoHashString;
     }
 }

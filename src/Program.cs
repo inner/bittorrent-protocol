@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using codecrafters_bittorrent;
@@ -63,34 +62,17 @@ switch (command)
     case "info":
     {
         var torrentFileName = args[1] ?? throw new ArgumentNullException(args[1]);
+        var torrent1 = new Torrent(File.ReadAllBytes(torrentFileName));
 
-        var torrentInfoInBytes = File.ReadAllBytes(torrentFileName);
-
-        var index = 0;
-        var result = BencodeDecoder.DecodeDictionary(ref torrentInfoInBytes, ref index);
-        var infoDictionary = (Dictionary<byte[], object>)result["info"u8.ToArray()];
-
-        infoDictionary.TryGetValue("piece length"u8.ToArray(), out var pieceLength);
-        infoDictionary.TryGetValue("pieces"u8.ToArray(), out var piecesValue);
-
-        var pieces = (byte[])piecesValue!;
-        var bencodedInfo = BencodeEncoder.EncodeDictionary(infoDictionary);
-        var infoHashString = CalculateInfoHash(bencodedInfo);
-
-        var trackerUrl = Encoding.UTF8.GetString((byte[])result["announce"u8.ToArray()]);
-        var trackerUrlMessage = $"Tracker URL: {trackerUrl}";
-        var lengthMessage = $"Length: {((Dictionary<byte[], object>)result["info"u8.ToArray()])["length"u8.ToArray()]}";
-        var infoHashMessage = $"Info Hash: {infoHashString}";
-        var pieceLengthMessage = $"Piece Length: {pieceLength}";
-
-        Console.WriteLine(trackerUrlMessage);
-        Console.WriteLine(lengthMessage);
-        Console.WriteLine(infoHashMessage);
-        Console.WriteLine(pieceLengthMessage);
+        Console.WriteLine($"Tracker URL: {torrent1.TrackerUrl}");
+        Console.WriteLine($"Length: {torrent1.Length}");
+        Console.WriteLine($"Info Hash: {torrent1.InfoHashHex}");
+        Console.WriteLine($"Piece Length: {torrent1.PieceLength}");
+        
         Console.WriteLine("Piece Hashes:");
-        foreach (var hashChunk in pieces.Chunk(20))
+        foreach (var pieceHash in torrent1.PieceHashes)
         {
-            Console.WriteLine(BitConverter.ToString(hashChunk).Replace("-", "").ToLower());
+            Console.WriteLine(pieceHash);
         }
 
         break;
@@ -98,6 +80,13 @@ switch (command)
     case "peers":
         var torrentBytes = File.ReadAllBytes(args[1] ?? throw new ArgumentNullException(args[1]));
         var torrent = new Torrent(torrentBytes);
+
+        var peers = await torrent.GetPeers();
+        foreach (var peer in peers)
+        {
+            Console.WriteLine(peer);
+        }
+
         break;
     default:
         throw new InvalidOperationException($"Invalid command: {command}");
@@ -135,14 +124,4 @@ static object DecodeNestedValue(object value)
         default:
             return value;
     }
-}
-
-string CalculateInfoHash(byte[] bencodedBytes)
-{
-    var infoHash = SHA1.HashData(bencodedBytes);
-
-    var infoHashString = BitConverter.ToString(infoHash)
-        .Replace("-", "").ToLower();
-
-    return infoHashString;
 }
