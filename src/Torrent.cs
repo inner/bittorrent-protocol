@@ -52,8 +52,8 @@ public class Torrent(byte[] torrentBytes)
         var response = await httpClient.GetAsync(fullUri);
         var responseContent = await response.Content.ReadAsByteArrayAsync();
         
-        var idx = 0;
-        var dict = BencodeDecoder.DecodeDictionary(ref responseContent, ref idx);
+        var index = 0;
+        var dict = BencodeDecoder.DecodeDictionary(ref responseContent, ref index);
 
         if (dict.TryGetValue("peers"u8.ToArray(), out var peersValue))
         {
