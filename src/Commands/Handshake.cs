@@ -49,15 +49,12 @@ public class Handshake : IBCommand
         var responseProtocolString = Encoding.UTF8.GetString(response, 1, 19);
         var responseReserved = response[20..28];
         var responseInfoHash = response[28..48];
-        var responsePeerId = response[48..68];
+        var responsePeerId = response[48..handshake.Length];
         
-        // print all fields
         Console.WriteLine($"Protocol string length: {responseProtocolStringLength}");
         Console.WriteLine($"Protocol string: {responseProtocolString}");
         Console.WriteLine($"Reserved: {Encoding.UTF8.GetString(responseReserved)}");
         Console.WriteLine($"Info hash: {BitConverter.ToString(responseInfoHash).Replace("-", "").ToLower()}");
-        
-        // print peer id in hexadecimal
         Console.WriteLine($"Peer ID: {BitConverter.ToString(responsePeerId).Replace("-", "").ToLower()}");
     }
 }
