@@ -16,7 +16,6 @@ public class Torrent(byte[] torrentBytes)
     public long Length => InfoDictionary.ToLength();
     public long PieceLength => InfoDictionary.ToPieceLength();
     public List<string> PieceHashes => PiecesInBytes.ToPieceHashes();
-    public List<string> Peers => new();
     
     public async Task<List<string>> GetPeers()
     {
@@ -75,8 +74,7 @@ public class Torrent(byte[] torrentBytes)
         {
             Console.WriteLine("The 'peers' key was not found in the dictionary.");
         }
-
-        Peers.AddRange(peersList);
+        
         return peersList;
     }
 }
