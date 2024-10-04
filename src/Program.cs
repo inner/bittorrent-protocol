@@ -21,6 +21,9 @@ switch (command)
     case "peers":
         await new Peers().Execute(args);
         break;
+    case "handshake":
+        await new Handshake().Execute(args);
+        break;
     default:
         throw new InvalidOperationException($"Invalid command: {command}");
 }
