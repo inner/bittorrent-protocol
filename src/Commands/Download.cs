@@ -10,7 +10,7 @@ public class Download : IBCommand
         var torrentFilename = args[3];
         var torrent = new Torrent(await File.ReadAllBytesAsync(torrentFilename));
         
-        var peerIpPort = (await torrent.DiscoverPeers()).First();
+        var peerIpPort = (await torrent.DiscoverPeers()).Skip(1).First();
         var peerIp = peerIpPort.Split(':')[0];
         var peerPort = peerIpPort.Split(':')[1];
 
