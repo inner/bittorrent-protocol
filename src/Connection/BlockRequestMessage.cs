@@ -6,19 +6,21 @@ public static class BlockRequestMessage
     {
         List<byte> message = [];
         
-        message.AddRange(BitConverter.GetBytes(13));
-        message.Add((byte)PeerMessageType.Request);
+        var lengthBytes = BitConverter.GetBytes(13);
         var pieceIndexArray = BitConverter.GetBytes(pieceIndex);
         var blockOffsetArray = BitConverter.GetBytes(blockOffset);
         var blockSizeArray = BitConverter.GetBytes(blockSize);
         
         if (BitConverter.IsLittleEndian)
         {
+            Array.Reverse(lengthBytes);
             Array.Reverse(pieceIndexArray);
             Array.Reverse(blockOffsetArray);
             Array.Reverse(blockSizeArray);
         }
         
+        message.AddRange(lengthBytes);
+        message.Add((byte)PeerMessageType.Request);
         message.AddRange(pieceIndexArray);
         message.AddRange(blockOffsetArray);
         message.AddRange(blockSizeArray);
