@@ -50,7 +50,6 @@ public class PeerConnection(Torrent torrent, Peer peer)
         }
         finally
         {
-            // close network stream and tcp client
             networkStream.Close();
             tcpClient.Close();
         }
