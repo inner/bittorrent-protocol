@@ -96,8 +96,7 @@ public class PeerConnection(Torrent torrent, Peer peer)
         var messageIdByte = ReadMessageId();
         if (messageIdByte != (byte)messageId)
         {
-            throw new Exception(
-                $"Could not read messageId: {messageId}. Instead received {messageIdByte}");
+            throw new Exception($"Expected messageId: {messageId}, but received: {messageIdByte}");
         }
 
         var data = new byte[messageLength - 1];
