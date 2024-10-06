@@ -27,12 +27,13 @@ public class PeerConnection
         
         List<byte> pieceData = [];
         Console.WriteLine($"Downloading piece index: {pieceIndex}.");
+        Console.WriteLine($"Piece Length: {pieceLength}");
         for (var i = 0; i < (double)pieceLength / BlockSize; i++)
         {
             var blockOffset = i * BlockSize;
             var blockSize = Math.Min(BlockSize, (int)pieceLength - i * BlockSize);
             Console.WriteLine($"\t[{i}] Block Offset: {blockOffset}, Block Size: {blockSize}");
-            var requestMessage = RequestBlockMessage.Create(pieceIndex, blockOffset, blockSize);
+            var requestMessage = BlockRequestMessage.Create(pieceIndex, blockOffset, blockSize);
             await networkStream.WriteAsync(requestMessage);
             var data = ReadMessage(PeerMessageType.Piece);
             pieceData.AddRange(data[8..]);

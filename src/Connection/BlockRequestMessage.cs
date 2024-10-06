@@ -1,6 +1,6 @@
 namespace codecrafters_bittorrent.Connection;
 
-public static class RequestBlockMessage
+public static class BlockRequestMessage
 {
     public static byte[] Create(int pieceIndex, int blockOffset, int blockSize)
     {
