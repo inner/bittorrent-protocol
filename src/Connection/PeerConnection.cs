@@ -22,9 +22,6 @@ public class PeerConnection
         ReadMessage(PeerMessageType.Bitfield);
         await SendInterested();
         ReadMessage(PeerMessageType.Unchoke);
-
-        Console.WriteLine($"File size: {torrent.Length}");
-        Console.WriteLine($"Piece size: {torrent.PieceLength}");
         
         var pieceLength = Math.Min(torrent.Length - pieceIndex * torrent.PieceLength, torrent.PieceLength);
         
