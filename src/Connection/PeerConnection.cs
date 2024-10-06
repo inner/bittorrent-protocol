@@ -14,17 +14,11 @@ public class PeerConnection
     {
         this.torrent = torrent;
         tcpClient = new TcpClient(peer.Ip, peer.Port);
+        Handshake().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     public async Task<byte[]> DownloadPiece(int pieceIndex)
     {
-        var handshakeData = await Handshake();
-
-        if (networkStream == null)
-            throw new InvalidOperationException("Handshake must be performed before downloading a piece");
-
-        Console.WriteLine($"Handshake data: {BitConverter.ToString(handshakeData).Replace("-", "").ToLower()}");
-
         ReadMessage(PeerMessageType.Bitfield);
         await SendInterested();
         ReadMessage(PeerMessageType.Unchoke);
@@ -54,6 +48,12 @@ public class PeerConnection
         }
 
         return pieceData.ToArray();
+    }
+
+    public async Task<byte[]> DownloadFile(int pieceIndex)
+    {
+        var pieceData = await DownloadPiece(pieceIndex);
+        return pieceData;
     }
 
     private static bool VerifyPieceIntegrity(byte[] pieceBytes, string originalHash)

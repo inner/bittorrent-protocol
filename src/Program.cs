@@ -27,6 +27,9 @@ switch (command)
     case "download_piece":
         await new DownloadPiece().Execute(args);
         break;
+    case "download":
+        await new Download().Execute(args);
+        break;
     default:
         throw new InvalidOperationException($"Invalid command: {command}");
 }
