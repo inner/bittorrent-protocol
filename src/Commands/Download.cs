@@ -13,6 +13,7 @@ public class Download : IBCommand
         var peerList = await torrent.DiscoverPeers();
         var random = new Random();
 
+        Console.WriteLine($"Total pieces: {torrent.PieceHashes.Count}");
         var fileData = new byte[torrent.Length];
         for (var i = 0; i < torrent.PieceHashes.Count; i++)
         {

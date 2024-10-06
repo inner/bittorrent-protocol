@@ -22,9 +22,9 @@ public class PeerConnection
         ReadMessage(PeerMessageType.Bitfield);
         await SendInterested();
         ReadMessage(PeerMessageType.Unchoke);
-        
+
         var pieceLength = Math.Min(torrent.Length - pieceIndex * torrent.PieceLength, torrent.PieceLength);
-        
+
         List<byte> pieceData = [];
         Console.WriteLine($"Downloading piece index: {pieceIndex}.");
         Console.WriteLine($"Piece Length: {pieceLength}");
@@ -109,7 +109,7 @@ public class PeerConnection
 
         return BitConverter.ToInt32(messageLength.ToArray(), 0);
     }
-    
+
     private byte ReadMessageId()
     {
         return (byte)networkStream.ReadByte();
