@@ -24,6 +24,9 @@ switch (command)
     case "handshake":
         await new Handshake().Execute(args);
         break;
+    case "download_piece":
+        await new DownloadPiece().Execute(args);
+        break;
     default:
         throw new InvalidOperationException($"Invalid command: {command}");
 }

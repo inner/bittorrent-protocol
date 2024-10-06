@@ -17,7 +17,7 @@ public class Torrent(byte[] torrentBytes)
     public long PieceLength => InfoDictionary.ToPieceLength();
     public List<string> PieceHashes => PiecesInBytes.ToPieceHashes();
     
-    public async Task<List<string>> GetPeers()
+    public async Task<List<string>> DiscoverPeers()
     {
         var peersList = new List<string>();
         var httpClient = new HttpClient();
