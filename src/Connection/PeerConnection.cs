@@ -7,7 +7,7 @@ public class PeerConnection(Torrent torrent, Peer peer)
     private NetworkStream networkStream = null!;
     private readonly TcpClient tcpClient = new(peer.Ip, peer.Port);
 
-    public async Task DownloadPiece()
+    public async Task DownloadPiece(int pieceIndex)
     {
         var handshakeData = await Handshake();
 

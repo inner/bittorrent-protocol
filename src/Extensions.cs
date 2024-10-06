@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using codecrafters_bittorrent.Connection;
 
 namespace codecrafters_bittorrent;
 

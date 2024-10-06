@@ -18,6 +18,6 @@ public class DownloadPiece : IBCommand
         var peerPort = peerIpPort.Split(':')[1];
         
         await new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)))
-            .DownloadPiece();
+            .DownloadPiece(0);
     }
 }
