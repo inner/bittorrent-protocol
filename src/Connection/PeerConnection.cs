@@ -87,24 +87,30 @@ public class PeerConnection
         return responseBuffer;
     }
 
-    private async Task<byte[]> ReadMessage(PeerMessageType peerMessageType)
+    private byte[] ReadMessage(PeerMessageType messageId)
     {
-        var buffer = new byte[5];
-
-        while (true)
+        var messageLength = ReadMessageLength();
+        var messageIdByte = networkStream.ReadByte();
+        if (messageIdByte != (byte)messageId)
         {
-            _ = await networkStream.ReadAsync(buffer);
-            var messageId = buffer[4];
-            if (messageId != (byte)peerMessageType)
-            {
-                continue;
-            }
-
-            Console.WriteLine($"Received message ID: {(PeerMessageType)messageId}");
-            break;
+            throw new Exception(
+                $"Could not read messageId: {messageId}. Instead received {messageIdByte}");
         }
 
-        return buffer;
+        var data = new byte[messageLength - 1];
+        networkStream.ReadExactly(data, 0, data.Length);
+        return data;
+    }
+
+    private int ReadMessageLength()
+    {
+        var messageLength = new byte[4];
+        networkStream.ReadExactly(messageLength, 0, messageLength.Length);
+
+        if (BitConverter.IsLittleEndian)
+            Array.Reverse(messageLength);
+
+        return BitConverter.ToInt32(messageLength.ToArray(), 0);
     }
 
     private async Task SendInterested()
