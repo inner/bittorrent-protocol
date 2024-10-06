@@ -25,9 +25,9 @@ public class PeerConnection
 
         Console.WriteLine($"Handshake data: {BitConverter.ToString(handshakeData).Replace("-", "").ToLower()}");
 
-        await ReadMessage(PeerMessageType.Bitfield);
+        ReadMessage(PeerMessageType.Bitfield);
         await SendInterested();
-        await ReadMessage(PeerMessageType.Unchoke);
+        ReadMessage(PeerMessageType.Unchoke);
 
         List<byte> pieceData = [];
         for (var i = 0; i < (double)torrent.PieceLength / BlockSize; i++)
@@ -36,7 +36,7 @@ public class PeerConnection
                 Math.Min(BlockSize, (int)torrent.PieceLength - i * BlockSize));
             await networkStream.WriteAsync(requestMessage);
 
-            pieceData.AddRange(await ReadMessage(PeerMessageType.Piece));
+            pieceData.AddRange(ReadMessage(PeerMessageType.Piece));
         }
 
         if (!VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex]))
