@@ -13,12 +13,11 @@ public class Download : IBCommand
         var peerIpPort = (await torrent.DiscoverPeers()).First();
         var peerIp = peerIpPort.Split(':')[0];
         var peerPort = peerIpPort.Split(':')[1];
-        
-        var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
 
         var fileData = new byte[torrent.Length];
         for (var i = 0; i < torrent.PieceHashes.Count; i++)
         {
+            var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
             var pieceData = await peerConnection.DownloadFile(i);
             pieceData.CopyTo(fileData, i * torrent.PieceLength);
         }
