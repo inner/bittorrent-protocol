@@ -29,13 +29,16 @@ public class PeerConnection
         await SendInterested();
         ReadMessage(PeerMessageType.Unchoke);
 
-        List<byte> pieceData = [];
         Console.WriteLine($"File size: {torrent.Length}");
         Console.WriteLine($"Piece size: {torrent.PieceLength}");
-        for (var i = 0; i < (double)torrent.PieceLength / BlockSize; i++)
+        
+        var pieceLength = Math.Min(torrent.Length - pieceIndex * torrent.PieceLength, torrent.PieceLength);
+        
+        List<byte> pieceData = [];
+        for (var i = 0; i < (double)pieceLength / BlockSize; i++)
         {
             var blockOffset = i * BlockSize;
-            var blockSize = Math.Min(BlockSize, (int)torrent.PieceLength - i * BlockSize);
+            var blockSize = Math.Min(BlockSize, (int)pieceLength - i * BlockSize);
             Console.WriteLine($"Piece Index: {pieceIndex}, Block Offset: {blockOffset}, Block Size: {blockSize}");
             var requestMessage = RequestBlockMessage.Create(pieceIndex, blockOffset, blockSize);
             await networkStream.WriteAsync(requestMessage);
@@ -96,35 +99,32 @@ public class PeerConnection
     private byte[] ReadMessage(PeerMessageType messageId)
     {
         var messageLength = ReadMessageLength();
-        var messageIdByte = networkStream.ReadByte();
-        if (messageIdByte == -1)
-        {
-            throw new EndOfStreamException("Unable to read the message ID from the stream.");
-        }
+        var messageIdByte = ReadMessageId();
         if (messageIdByte != (byte)messageId)
         {
-            throw new Exception($"Expected message ID: {(byte)messageId}, but received: {messageIdByte}");
+            throw new Exception(
+                $"Could not read messageId: {messageId}. Instead received {messageIdByte}");
         }
 
         var data = new byte[messageLength - 1];
-        var bytesRead = networkStream.Read(data, 0, data.Length);
-        if (bytesRead < data.Length)
-        {
-            throw new EndOfStreamException("Unable to read the full message data from the stream.");
-        }
-
+        networkStream.ReadExactly(data, 0, data.Length);
         return data;
     }
 
     private int ReadMessageLength()
     {
         var messageLength = new byte[4];
-        networkStream.ReadExactly(messageLength, 0, messageLength.Length);
+        networkStream.ReadExactly(messageLength, 0, 4);
 
         if (BitConverter.IsLittleEndian)
             Array.Reverse(messageLength);
 
         return BitConverter.ToInt32(messageLength.ToArray(), 0);
+    }
+    
+    private byte ReadMessageId()
+    {
+        return (byte)networkStream.ReadByte();
     }
 
     private async Task SendInterested()
