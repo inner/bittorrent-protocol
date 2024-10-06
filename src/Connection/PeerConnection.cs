@@ -3,50 +3,57 @@ using System.Security.Cryptography;
 
 namespace codecrafters_bittorrent.Connection;
 
-public class PeerConnection
+public class PeerConnection(Torrent torrent, Peer peer)
 {
-    private readonly TcpClient tcpClient;
-    private readonly Torrent torrent;
+    private readonly TcpClient tcpClient = new(peer.Ip, peer.Port);
     private NetworkStream networkStream = null!;
     private const int BlockSize = 16384;
 
-    public PeerConnection(Torrent torrent, Peer peer)
-    {
-        this.torrent = torrent;
-        tcpClient = new TcpClient(peer.Ip, peer.Port);
-        Handshake().ConfigureAwait(false).GetAwaiter().GetResult();
-    }
-
     public async Task<byte[]> DownloadPiece(int pieceIndex)
     {
-        ReadMessage(PeerMessageType.Bitfield);
-        await SendInterested();
-        ReadMessage(PeerMessageType.Unchoke);
-
-        var pieceLength = Math.Min(torrent.Length - pieceIndex * torrent.PieceLength, torrent.PieceLength);
-
-        List<byte> pieceData = [];
-        Console.WriteLine($"Downloading piece index: {pieceIndex}.");
-        Console.WriteLine($"Piece Length: {pieceLength}");
-        for (var i = 0; i < (double)pieceLength / BlockSize; i++)
+        try
         {
-            var blockOffset = i * BlockSize;
-            var blockSize = Math.Min(BlockSize, (int)pieceLength - i * BlockSize);
-            Console.WriteLine($"\t[{i}] Block Offset: {blockOffset}, Block Size: {blockSize}");
-            var requestMessage = BlockRequestMessage.Create(pieceIndex, blockOffset, blockSize);
-            await networkStream.WriteAsync(requestMessage);
-            var data = ReadMessage(PeerMessageType.Piece);
-            pieceData.AddRange(data[8..]);
-        }
+            await Handshake();
+            ReadMessage(PeerMessageType.Bitfield);
+            await SendInterested();
+            ReadMessage(PeerMessageType.Unchoke);
 
-        if (!VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex]))
+            var pieceLength = Math.Min(torrent.Length - pieceIndex * torrent.PieceLength, torrent.PieceLength);
+
+            List<byte> pieceData = [];
+            Console.WriteLine($"Downloading piece index: {pieceIndex}.");
+            Console.WriteLine($"Piece Length: {pieceLength}");
+            for (var i = 0; i < (double)pieceLength / BlockSize; i++)
+            {
+                var blockOffset = i * BlockSize;
+                var blockSize = Math.Min(BlockSize, (int)pieceLength - i * BlockSize);
+                Console.WriteLine($"\t[{i}] Block Offset: {blockOffset}, Block Size: {blockSize}");
+                var requestMessage = BlockRequestMessage.Create(pieceIndex, blockOffset, blockSize);
+                await networkStream.WriteAsync(requestMessage);
+                var data = ReadMessage(PeerMessageType.Piece);
+                pieceData.AddRange(data[8..]);
+            }
+
+            if (!VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex]))
+            {
+                throw new InvalidOperationException("Piece integrity verification failed");
+            }
+
+            Console.WriteLine($"Downloaded piece index: {pieceIndex}.");
+
+            return pieceData.ToArray();
+        }
+        catch (Exception ex)
         {
-            throw new InvalidOperationException("Piece integrity verification failed");
+            Console.WriteLine(ex);
+            throw;
         }
-
-        Console.WriteLine($"Downloaded piece index: {pieceIndex}.");
-
-        return pieceData.ToArray();
+        finally
+        {
+            // close network stream and tcp client
+            networkStream.Close();
+            tcpClient.Close();
+        }
     }
 
     private static bool VerifyPieceIntegrity(byte[] pieceBytes, string originalHash)

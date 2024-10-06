@@ -11,16 +11,16 @@ public class Download : IBCommand
         var torrent = new Torrent(await File.ReadAllBytesAsync(torrentFilename));
         
         var peerList = await torrent.DiscoverPeers();
-        var random = new Random();
 
         Console.WriteLine($"Total pieces: {torrent.PieceHashes.Count}");
         var fileData = new byte[torrent.Length];
         for (var i = 0; i < torrent.PieceHashes.Count; i++)
         {
+            var random = new Random();
             var peer = peerList[random.Next(peerList.Count)];
             var peerIp = peer.Split(':')[0];
             var peerPort = peer.Split(':')[1];
-            
+        
             var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
             var piece = await peerConnection.DownloadPiece(i);
             piece.CopyTo(fileData, i * torrent.PieceLength);
