@@ -1,14 +1,20 @@
 using System.Net.Sockets;
+using System.Security.Cryptography;
 
 namespace codecrafters_bittorrent.Connection;
 
-public class PeerConnection(Torrent torrent, Peer peer)
+public class PeerConnection
 {
-    private readonly TcpClient tcpClient = new(peer.Ip, peer.Port);
-    private readonly Torrent _torrent = torrent;
+    private readonly TcpClient tcpClient;
+    private readonly Torrent torrent;
     private NetworkStream networkStream = null!;
-
     private const int BlockSize = 16384;
+
+    public PeerConnection(Torrent torrent, Peer peer)
+    {
+        this.torrent = torrent;
+        tcpClient = new TcpClient(peer.Ip, peer.Port);
+    }
 
     public async Task<byte[]> DownloadPiece(int pieceIndex)
     {
@@ -24,27 +30,38 @@ public class PeerConnection(Torrent torrent, Peer peer)
         await ReadMessage(PeerMessageType.Unchoke);
 
         List<byte> pieceData = [];
-        for (var i = 0; i < (double)_torrent.PieceLength / BlockSize; i++)
+        for (var i = 0; i < (double)torrent.PieceLength / BlockSize; i++)
         {
             var requestMessage = RequestBlockMessage.Create(pieceIndex, i * BlockSize,
-                Math.Min(BlockSize, (int)_torrent.PieceLength - i * BlockSize));
+                Math.Min(BlockSize, (int)torrent.PieceLength - i * BlockSize));
             await networkStream.WriteAsync(requestMessage);
 
             pieceData.AddRange(await ReadMessage(PeerMessageType.Piece));
         }
 
+        if (!VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex]))
+        {
+            throw new InvalidOperationException("Piece integrity verification failed");
+        }
+
         return pieceData.ToArray();
+    }
+
+    private static bool VerifyPieceIntegrity(byte[] pieceBytes, string originalHash)
+    {
+        return Convert.ToHexString(SHA1.HashData(pieceBytes))
+            .Equals(originalHash, StringComparison.CurrentCultureIgnoreCase);
     }
 
     public async Task<byte[]> Handshake(string? peerIpPort = null)
     {
-        var peer = peerIpPort ?? (await _torrent.DiscoverPeers()).First();
+        var peer = peerIpPort ?? (await torrent.DiscoverPeers()).First();
         var peerIp = peer.Split(':')[0];
         var peerPort = int.Parse(peer.Split(':')[1]);
         Console.WriteLine($"Connecting to peer {peerIp}:{peerPort}");
 
         networkStream = tcpClient.GetStream();
-        var handshakeMessage = HandshakeMessage.Create(_torrent);
+        var handshakeMessage = HandshakeMessage.Create(torrent);
         await networkStream.WriteAsync(handshakeMessage);
 
         var responseBuffer = new byte[handshakeMessage.Length];
