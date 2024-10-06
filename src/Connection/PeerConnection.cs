@@ -41,7 +41,7 @@ public class PeerConnection
             await networkStream.WriteAsync(requestMessage);
 
             var data = ReadMessage(PeerMessageType.Piece);
-            Console.WriteLine($"Data length: {data.Length}");
+            Console.WriteLine($"Data length downloaded: {data.Length}");
             pieceData.AddRange(data[8..]);
         }
 
