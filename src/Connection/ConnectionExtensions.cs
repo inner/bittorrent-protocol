@@ -13,7 +13,7 @@ public static class HandshakeMessage
         
         var peerId = peerIdentification != null
             ? Encoding.UTF8.GetBytes(peerIdentification)
-            : "00112233445566778899"u8.ToArray();
+            : Encoding.UTF8.GetBytes(GeneratePeerId(20));
 
         var handshakeBytes = new List<byte> { protocolStringLengthBytes };
         handshakeBytes.AddRange(protocolStringBytes);
@@ -22,5 +22,13 @@ public static class HandshakeMessage
         handshakeBytes.AddRange(peerId);
         
         return handshakeBytes.ToArray();
+    }
+    
+    private static string GeneratePeerId(int length)
+    {
+        var random = new Random();
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        return new string(Enumerable.Repeat(chars, length)
+            .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 }

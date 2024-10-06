@@ -10,16 +10,19 @@ public class Download : IBCommand
         var torrentFilename = args[3];
         var torrent = new Torrent(await File.ReadAllBytesAsync(torrentFilename));
         
-        var peerIpPort = (await torrent.DiscoverPeers()).Skip(2).First();
-        var peerIp = peerIpPort.Split(':')[0];
-        var peerPort = peerIpPort.Split(':')[1];
+        var peerList = await torrent.DiscoverPeers();
+        var random = new Random();
 
         var fileData = new byte[torrent.Length];
         for (var i = 0; i < torrent.PieceHashes.Count; i++)
         {
+            var peer = peerList[random.Next(peerList.Count)];
+            var peerIp = peer.Split(':')[0];
+            var peerPort = peer.Split(':')[1];
+            
             var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
-            var pieceData = await peerConnection.DownloadFile(i);
-            pieceData.CopyTo(fileData, i * torrent.PieceLength);
+            var piece = await peerConnection.DownloadPiece(i);
+            piece.CopyTo(fileData, i * torrent.PieceLength);
         }
         
         await File.WriteAllBytesAsync(fileLocation, fileData);
