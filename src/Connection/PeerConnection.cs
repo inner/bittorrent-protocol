@@ -4,10 +4,13 @@ namespace codecrafters_bittorrent.Connection;
 
 public class PeerConnection(Torrent torrent, Peer peer)
 {
-    private NetworkStream networkStream = null!;
     private readonly TcpClient tcpClient = new(peer.Ip, peer.Port);
+    private readonly Torrent _torrent = torrent;
+    private NetworkStream networkStream = null!;
 
-    public async Task DownloadPiece(int pieceIndex)
+    private const int BlockSize = 16384;
+
+    public async Task<byte[]> DownloadPiece(int pieceIndex)
     {
         var handshakeData = await Handshake();
 
@@ -19,23 +22,29 @@ public class PeerConnection(Torrent torrent, Peer peer)
         await ReadMessage(PeerMessageType.Bitfield);
         await SendInterested();
         await ReadMessage(PeerMessageType.Unchoke);
-    }
 
-    private async Task SendInterested()
-    {
-        var interestedMessage = new byte[] { 0, 0, 0, 1, (byte)PeerMessageType.Interested };
-        await networkStream.WriteAsync(interestedMessage);
+        List<byte> pieceData = [];
+        for (var i = 0; i < (double)_torrent.PieceLength / BlockSize; i++)
+        {
+            var requestMessage = RequestBlockMessage.Create(pieceIndex, i * BlockSize,
+                Math.Min(BlockSize, (int)_torrent.PieceLength - i * BlockSize));
+            await networkStream.WriteAsync(requestMessage);
+
+            pieceData.AddRange(await ReadMessage(PeerMessageType.Piece));
+        }
+
+        return pieceData.ToArray();
     }
 
     public async Task<byte[]> Handshake(string? peerIpPort = null)
     {
-        var peer = peerIpPort ?? (await torrent.DiscoverPeers()).First();
+        var peer = peerIpPort ?? (await _torrent.DiscoverPeers()).First();
         var peerIp = peer.Split(':')[0];
         var peerPort = int.Parse(peer.Split(':')[1]);
         Console.WriteLine($"Connecting to peer {peerIp}:{peerPort}");
 
         networkStream = tcpClient.GetStream();
-        var handshakeMessage = HandshakeMessage.Create(torrent);
+        var handshakeMessage = HandshakeMessage.Create(_torrent);
         await networkStream.WriteAsync(handshakeMessage);
 
         var responseBuffer = new byte[handshakeMessage.Length];
@@ -47,11 +56,11 @@ public class PeerConnection(Torrent torrent, Peer peer)
             if (lengthRead > 0)
                 break;
 
-            Console.WriteLine($"[{retryCount+1}] Trying to get handshake response...");
+            Console.WriteLine($"[{retryCount + 1}] Trying to get handshake response...");
             await Task.Delay(1000);
             retryCount++;
         }
-        
+
         if (retryCount == maxRetries)
             throw new InvalidOperationException("Failed to get handshake response");
 
@@ -61,7 +70,7 @@ public class PeerConnection(Torrent torrent, Peer peer)
         return responseBuffer;
     }
 
-    private async Task ReadMessage(PeerMessageType peerMessageType)
+    private async Task<byte[]> ReadMessage(PeerMessageType peerMessageType)
     {
         var buffer = new byte[5];
 
@@ -77,5 +86,13 @@ public class PeerConnection(Torrent torrent, Peer peer)
             Console.WriteLine($"Received message ID: {(PeerMessageType)messageId}");
             break;
         }
+
+        return buffer;
+    }
+
+    private async Task SendInterested()
+    {
+        var interestedMessage = new byte[] { 0, 0, 0, 1, (byte)PeerMessageType.Interested };
+        await networkStream.WriteAsync(interestedMessage);
     }
 }

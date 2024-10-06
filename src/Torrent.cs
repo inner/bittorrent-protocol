@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
 using System.Web;
-using codecrafters_bittorrent.Connection;
 
 namespace codecrafters_bittorrent;
 
