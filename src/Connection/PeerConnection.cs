@@ -97,14 +97,22 @@ public class PeerConnection
     {
         var messageLength = ReadMessageLength();
         var messageIdByte = networkStream.ReadByte();
+        if (messageIdByte == -1)
+        {
+            throw new EndOfStreamException("Unable to read the message ID from the stream.");
+        }
         if (messageIdByte != (byte)messageId)
         {
-            throw new Exception(
-                $"Could not read messageId: {messageId}. Instead received {messageIdByte}");
+            throw new Exception($"Expected message ID: {(byte)messageId}, but received: {messageIdByte}");
         }
 
         var data = new byte[messageLength - 1];
-        networkStream.ReadExactly(data, 0, data.Length);
+        var bytesRead = networkStream.Read(data, 0, data.Length);
+        if (bytesRead < data.Length)
+        {
+            throw new EndOfStreamException("Unable to read the full message data from the stream.");
+        }
+
         return data;
     }
 
