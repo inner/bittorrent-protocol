@@ -30,13 +30,19 @@ public class PeerConnection
         ReadMessage(PeerMessageType.Unchoke);
 
         List<byte> pieceData = [];
+        Console.WriteLine($"File size: {torrent.Length}");
+        Console.WriteLine($"Piece size: {torrent.PieceLength}");
         for (var i = 0; i < (double)torrent.PieceLength / BlockSize; i++)
         {
-            var requestMessage = RequestBlockMessage.Create(pieceIndex, i * BlockSize,
-                Math.Min(BlockSize, (int)torrent.PieceLength - i * BlockSize));
+            var blockOffset = i * BlockSize;
+            var blockSize = Math.Min(BlockSize, (int)torrent.PieceLength - i * BlockSize);
+            Console.WriteLine($"Piece Index: {pieceIndex}, Block Offset: {blockOffset}, Block Size: {blockSize}");
+            var requestMessage = RequestBlockMessage.Create(pieceIndex, blockOffset, blockSize);
             await networkStream.WriteAsync(requestMessage);
 
-            pieceData.AddRange(ReadMessage(PeerMessageType.Piece));
+            var data = ReadMessage(PeerMessageType.Piece);
+            Console.WriteLine($"Data length: {data.Length}");
+            pieceData.AddRange(data[8..]);
         }
 
         if (!VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex]))
