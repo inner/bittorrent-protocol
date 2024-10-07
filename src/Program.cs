@@ -30,6 +30,9 @@ switch (command)
     case "download":
         await new Download().Execute(args);
         break;
+    case "magnet_parse":
+        await new MagnetParse().Execute(args);
+        break;
     default:
         throw new InvalidOperationException($"Invalid command: {command}");
 }
