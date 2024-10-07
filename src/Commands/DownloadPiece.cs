@@ -18,7 +18,12 @@ public class DownloadPiece : IBCommand
         var peerPort = peerIpPort.Split(':')[1];
         
         var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
-        var pieceData = await peerConnection.DownloadPiece(pieceIndex);
+        var networkStream = await peerConnection.Handshake();
+        networkStream.ReadMessage(PeerMessageType.Bitfield);
+        await networkStream.SendInterested();
+        networkStream.ReadMessage(PeerMessageType.Unchoke);
+        
+        var pieceData = await networkStream.DownloadPiece(torrent, pieceIndex);
         
         await File.WriteAllBytesAsync(pieceLocation, pieceData);
         Console.WriteLine($"Piece downloaded to {pieceLocation}");
