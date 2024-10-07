@@ -6,7 +6,6 @@ public class DownloadPiece : IBCommand
 {
     public async Task Execute(string[] args)
     {
-        var outputFlag = args[1];
         var pieceLocation = args[2];
         var torrentFilename = args[3];
         var pieceIndex = int.Parse(args[4]);
