@@ -17,7 +17,7 @@ public class DownloadPiece : IBCommand
         var peerIp = peerIpPort.Split(':')[0];
         var peerPort = peerIpPort.Split(':')[1];
         
-        var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
+        using var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
         var networkStream = await peerConnection.Handshake();
         networkStream.ReadMessage(PeerMessageType.Bitfield);
         await networkStream.SendInterested();
