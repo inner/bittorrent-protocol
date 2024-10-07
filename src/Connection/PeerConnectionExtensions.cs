@@ -87,11 +87,10 @@ public static class PeerConnectionExtensions
         networkStream.Write(interestedMessage);
     }
 
-    public static NetworkStream Unchoke(this NetworkStream networkStream)
+    public static void Unchoke(this NetworkStream networkStream)
     {
         networkStream.ReadMessage(PeerMessageType.Bitfield);
         networkStream.SendInterested();
         networkStream.ReadMessage(PeerMessageType.Unchoke);
-        return networkStream;
     }
 }
