@@ -34,10 +34,6 @@ public class PeerConnection(Torrent torrent, Peer peer) : IDisposable
         var responsePeerId = responseBuffer[48..handshakeMessage.Length];
         Console.WriteLine($"Peer ID: {BitConverter.ToString(responsePeerId).Replace("-", "").ToLower()}");
         
-        networkStream.ReadMessage(PeerMessageType.Bitfield);
-        await networkStream.SendInterested();
-        networkStream.ReadMessage(PeerMessageType.Unchoke);
-        
         return networkStream;
     }
 

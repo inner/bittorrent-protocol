@@ -51,7 +51,7 @@ public static class PeerConnectionExtensions
     }
 
 
-    public static byte[] ReadMessage(this NetworkStream networkStream, PeerMessageType messageId)
+    private static byte[] ReadMessage(this NetworkStream networkStream, PeerMessageType messageId)
     {
         var messageLength = networkStream.ReadMessageLength();
         var messageIdByte = networkStream.ReadMessageId();
@@ -81,9 +81,17 @@ public static class PeerConnectionExtensions
         return (byte)networkStream.ReadByte();
     }
 
-    public static async Task SendInterested(this NetworkStream networkStream)
+    private static void SendInterested(this NetworkStream networkStream)
     {
         var interestedMessage = new byte[] { 0, 0, 0, 1, (byte)PeerMessageType.Interested };
-        await networkStream.WriteAsync(interestedMessage);
+        networkStream.Write(interestedMessage);
+    }
+
+    public static NetworkStream Unchoke(this NetworkStream networkStream)
+    {
+        networkStream.ReadMessage(PeerMessageType.Bitfield);
+        networkStream.SendInterested();
+        networkStream.ReadMessage(PeerMessageType.Unchoke);
+        return networkStream;
     }
 }

@@ -16,6 +16,7 @@ public class Handshake : IBCommand
         var peerPort = peerIpPort.Split(':')[1];
         
         var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
-        _ = await peerConnection.Handshake();
+        var networkStream = await peerConnection.Handshake();
+        networkStream.Unchoke();
     }
 }
