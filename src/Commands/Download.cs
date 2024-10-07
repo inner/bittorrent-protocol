@@ -18,10 +18,6 @@ public class Download : IBCommand
         
         using var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
         var networkStream = await peerConnection.Handshake();
-        
-        networkStream.ReadMessage(PeerMessageType.Bitfield);
-        await networkStream.SendInterested();
-        networkStream.ReadMessage(PeerMessageType.Unchoke);
 
         Console.WriteLine($"Total pieces: {torrent.PieceHashes.Count}");
         var fileData = new byte[torrent.Length];

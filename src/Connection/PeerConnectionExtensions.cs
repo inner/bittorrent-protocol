@@ -6,16 +6,17 @@ namespace codecrafters_bittorrent.Connection;
 public static class PeerConnectionExtensions
 {
     private const int BlockSize = 16384;
-    
+
     public static async Task<byte[]> DownloadPiece(this NetworkStream networkStream, Torrent torrent, int pieceIndex)
     {
         try
         {
             var pieceLength = Math.Min(torrent.Length - pieceIndex * torrent.PieceLength, torrent.PieceLength);
 
-            List<byte> pieceData = [];
             Console.WriteLine($"Downloading piece index: {pieceIndex}.");
             Console.WriteLine($"Piece Length: {pieceLength}");
+
+            List<byte> pieceData = [];
             for (var i = 0; i < (double)pieceLength / BlockSize; i++)
             {
                 var blockOffset = i * BlockSize;
@@ -27,13 +28,8 @@ public static class PeerConnectionExtensions
                 pieceData.AddRange(data[8..]);
             }
 
-            if (!VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex]))
-            {
-                throw new InvalidOperationException("Piece integrity verification failed");
-            }
-
+            VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex]);
             Console.WriteLine($"Downloaded piece index: {pieceIndex}.");
-
             return pieceData.ToArray();
         }
         catch (Exception ex)
@@ -42,11 +38,16 @@ public static class PeerConnectionExtensions
             throw;
         }
     }
-    
-    private static bool VerifyPieceIntegrity(byte[] pieceBytes, string originalHash)
+
+    private static void VerifyPieceIntegrity(byte[] pieceBytes, string originalHash)
     {
-        return Convert.ToHexString(SHA1.HashData(pieceBytes))
-            .Equals(originalHash, StringComparison.CurrentCultureIgnoreCase);
+        if (!Convert.ToHexString(SHA1.HashData(pieceBytes))
+                .Equals(originalHash, StringComparison.CurrentCultureIgnoreCase))
+        {
+            throw new InvalidOperationException("Piece integrity verification failed");
+        }
+
+        Console.WriteLine("Piece integrity verified");
     }
 
 
