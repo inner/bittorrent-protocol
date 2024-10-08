@@ -28,7 +28,7 @@ public static class PeerConnectionExtensions
                 pieceData.AddRange(data[8..]);
             }
 
-            VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex]);
+            VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex], pieceIndex);
             Console.WriteLine($"Downloaded piece index: {pieceIndex}.");
             return pieceData.ToArray();
         }
@@ -39,15 +39,15 @@ public static class PeerConnectionExtensions
         }
     }
 
-    private static void VerifyPieceIntegrity(byte[] pieceBytes, string originalHash)
+    private static void VerifyPieceIntegrity(byte[] pieceBytes, string originalHash, int pieceIndex)
     {
         if (!Convert.ToHexString(SHA1.HashData(pieceBytes))
                 .Equals(originalHash, StringComparison.CurrentCultureIgnoreCase))
         {
-            throw new InvalidOperationException("Piece integrity verification failed");
+            throw new InvalidOperationException($"Piece {pieceIndex} integrity verification failed");
         }
 
-        Console.WriteLine("Piece integrity verified");
+        Console.WriteLine($"Piece {pieceIndex} integrity verified");
     }
 
 
