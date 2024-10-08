@@ -35,7 +35,7 @@ public static class TrackerExtensions
         var queryParameters = new Dictionary<string, string>
         {
             { "info_hash", HttpUtility.UrlEncode(infoHash) },
-            { "peer_id", GeneratePeerId() },
+            { "peer_id", "00112233445566778899" },
             { "port", "6881" },
             { "uploaded", "0" },
             { "downloaded", "0" },
@@ -84,13 +84,5 @@ public static class TrackerExtensions
         }
         
         return peersList;
-    }
-    
-    private static string GeneratePeerId()
-    {
-        var random = new Random();
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return new string(Enumerable.Repeat(chars, 20)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 }
