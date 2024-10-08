@@ -65,11 +65,12 @@ public class Download : IBCommand
                     {
                         var piece = await networkStream.DownloadPiece(torrent, pieceIndex);
                         piece.CopyTo(fileData, pieceIndex * torrent.PieceLength);
-                        Console.WriteLine($"Downloaded piece {pieceIndex} from peer {peer.Ip}:{peer.Port}");
+                        Console.WriteLine($"Downloaded piece {pieceIndex} from peer '{peer.Ip}:{peer.Port}'");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Failed to download piece {pieceIndex} from peer {peer.Ip}:{peer.Port}: {ex.Message}");
+                        Console.WriteLine(
+                            $"Failed to download piece {pieceIndex} from peer '{peer.Ip}:{peer.Port}': {ex.Message}");
                         pieceQueue.Enqueue(pieceIndex);
                     }
                 }
