@@ -50,7 +50,6 @@ public static class PeerConnectionExtensions
         Console.WriteLine($"Piece {pieceIndex} integrity verified");
     }
 
-
     private static byte[] ReadMessage(this NetworkStream networkStream, PeerMessageType messageId)
     {
         var messageLength = networkStream.ReadMessageLength();
