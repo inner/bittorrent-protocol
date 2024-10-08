@@ -12,7 +12,7 @@ public class MagnetParse : IBCommand
         var infoHash = magnet.GetInfoHash();
         
         Console.WriteLine($"Tracker URL: {trackerUrl}");
-        Console.WriteLine($"Info hash: {infoHash.ToInfoHashHex()}");
+        Console.WriteLine($"Info Hash: {infoHash.ToInfoHashHex()}");
         
         return Task.CompletedTask;
     }
