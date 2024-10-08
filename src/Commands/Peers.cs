@@ -1,3 +1,5 @@
+using codecrafters_bittorrent.Extensions;
+
 namespace codecrafters_bittorrent.Commands;
 
 public class Peers : IBCommand
@@ -7,7 +9,7 @@ public class Peers : IBCommand
         var torrentBytes = await File.ReadAllBytesAsync(args[1] ?? throw new ArgumentNullException(args[1]));
         var torrent = new Torrent(torrentBytes);
 
-        var peers = await torrent.DiscoverPeers();
+        var peers = await TrackerExtensions.DiscoverPeers(torrent.TrackerUrl, torrent.InfoHash, torrent.Length);
         foreach (var peer in peers)
         {
             Console.WriteLine(peer);

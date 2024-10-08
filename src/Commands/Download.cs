@@ -1,4 +1,5 @@
 using codecrafters_bittorrent.Connection;
+using codecrafters_bittorrent.Extensions;
 
 namespace codecrafters_bittorrent.Commands;
 
@@ -10,13 +11,11 @@ public class Download : IBCommand
         var torrentFilename = args[3];
         var torrent = new Torrent(await File.ReadAllBytesAsync(torrentFilename));
         
-        var peerList = await torrent.DiscoverPeers();
+        var peerList = await TrackerExtensions.DiscoverPeers(torrent.TrackerUrl, torrent.InfoHash, torrent.Length);
         var random = new Random();
         var peer = peerList[random.Next(peerList.Count)];
-        var peerIp = peer.Split(':')[0];
-        var peerPort = peer.Split(':')[1];
         
-        using var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
+        using var peerConnection = new PeerConnection(torrent.InfoHash, peer);
         var networkStream = await peerConnection.Handshake();
         networkStream.Unchoke();
 

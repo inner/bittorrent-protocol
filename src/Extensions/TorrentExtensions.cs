@@ -1,10 +1,9 @@
 using System.Security.Cryptography;
 using System.Text;
-using codecrafters_bittorrent.Connection;
 
-namespace codecrafters_bittorrent;
+namespace codecrafters_bittorrent.Extensions;
 
-public static class Extensions
+public static class TorrentExtensions
 {
     public static BencodingType ToBencodingType(this byte[] encodedValue, ref int index)
     {
@@ -42,15 +41,15 @@ public static class Extensions
         return piecesInBytes;
     }
 
-    public static string ToInfoHashHex(this byte[] infoHash)
-    {
-        return BitConverter.ToString(infoHash).Replace("-", "").ToLower();
-    }
-
     public static byte[] ToInfoHash(this Dictionary<byte[], object> infoDictionary)
     {
         var bencodedInfo = BencodeEncoder.EncodeDictionary(infoDictionary);
         return SHA1.HashData(bencodedInfo);
+    }
+    
+    public static string ToInfoHashHex(this byte[] infoHash)
+    {
+        return BitConverter.ToString(infoHash).Replace("-", "").ToLower();
     }
 
     public static string ToTrackerUrl(this Dictionary<byte[], object> torrentDictionary)

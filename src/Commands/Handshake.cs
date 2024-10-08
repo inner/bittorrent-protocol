@@ -1,4 +1,5 @@
 using codecrafters_bittorrent.Connection;
+using codecrafters_bittorrent.Extensions;
 
 namespace codecrafters_bittorrent.Commands;
 
@@ -7,15 +8,23 @@ public class Handshake : IBCommand
     public async Task Execute(string[] args)
     {
         var torrent = new Torrent(await File.ReadAllBytesAsync(args[1]));
-        
-        var peerIpPort = args.Length > 2
-            ? args[2]
-            : (await torrent.DiscoverPeers()).First();
-        
-        var peerIp = peerIpPort.Split(':')[0];
-        var peerPort = peerIpPort.Split(':')[1];
-        
-        var peerConnection = new PeerConnection(torrent, new Peer(peerIp, int.Parse(peerPort)));
+
+        Peer peer;
+
+        if (args.Length > 2)
+        {
+            var peerIpPort = args[2];
+            var peerIp = peerIpPort.Split(':')[0];
+            var peerPort = peerIpPort.Split(':')[1];
+            peer = new Peer(peerIp, int.Parse(peerPort));
+        }
+        else
+        {
+            var peers = await TrackerExtensions.DiscoverPeers(torrent.TrackerUrl, torrent.InfoHash, torrent.Length);
+            peer = peers.First();
+        }
+
+        var peerConnection = new PeerConnection(torrent.InfoHash, peer);
         _ = await peerConnection.Handshake();
     }
 }

@@ -2,15 +2,15 @@ using System.Net.Sockets;
 
 namespace codecrafters_bittorrent.Connection;
 
-public class PeerConnection(Torrent torrent, Peer peer) : IDisposable
+public class PeerConnection(byte[] infoHash, Peer peer) : IDisposable
 {
     private readonly TcpClient tcpClient = new(peer.Ip, peer.Port);
-    private NetworkStream networkStream = null!;
+    private NetworkStream? networkStream;
 
     public async Task<NetworkStream> Handshake()
     {
         networkStream = tcpClient.GetStream();
-        var handshakeMessage = HandshakeMessage.Create(torrent);
+        var handshakeMessage = HandshakeMessage.Create(infoHash);
         await networkStream.WriteAsync(handshakeMessage);
 
         var responseBuffer = new byte[handshakeMessage.Length];
@@ -40,6 +40,6 @@ public class PeerConnection(Torrent torrent, Peer peer) : IDisposable
     public void Dispose()
     {
         tcpClient.Dispose();
-        networkStream.Dispose();
+        networkStream?.Dispose();
     }
 }

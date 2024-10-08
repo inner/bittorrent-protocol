@@ -33,6 +33,9 @@ switch (command)
     case "magnet_parse":
         await new MagnetParse().Execute(args);
         break;
+    case "magnet_handshake":
+        await new MagnetHandshake().Execute(args);
+        break;
     default:
         throw new InvalidOperationException($"Invalid command: {command}");
 }

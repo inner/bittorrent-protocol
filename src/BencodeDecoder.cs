@@ -1,4 +1,5 @@
 using System.Text;
+using codecrafters_bittorrent.Extensions;
 
 namespace codecrafters_bittorrent;
 

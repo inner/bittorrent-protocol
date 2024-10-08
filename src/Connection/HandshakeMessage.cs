@@ -4,16 +4,17 @@ namespace codecrafters_bittorrent.Connection;
 
 public static class HandshakeMessage
 {
-    public static byte[] Create(Torrent torrent, string? peerIdentification = null)
+    public static byte[] Create(byte[] infoHash, string? peerIdentification = null)
     {
         var protocolStringLengthBytes = (byte)19;
         var protocolStringBytes = "BitTorrent protocol"u8.ToArray();
         var reservedBytes = new byte[8];
-        var infoHash = torrent.InfoHash;
+        // Set the 6th byte to 0b00010000 to indicate that we support the extension protocol
+        reservedBytes[5] = 0b00010000;
         
         var peerId = peerIdentification != null
             ? Encoding.UTF8.GetBytes(peerIdentification)
-            : Encoding.UTF8.GetBytes(GeneratePeerId(20));
+            : Encoding.UTF8.GetBytes(GeneratePeerId());
 
         var handshakeBytes = new List<byte> { protocolStringLengthBytes };
         handshakeBytes.AddRange(protocolStringBytes);
@@ -24,11 +25,11 @@ public static class HandshakeMessage
         return handshakeBytes.ToArray();
     }
     
-    private static string GeneratePeerId(int length)
+    private static string GeneratePeerId()
     {
         var random = new Random();
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return new string(Enumerable.Repeat(chars, length)
+        return new string(Enumerable.Repeat(chars, 20)
             .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 }
