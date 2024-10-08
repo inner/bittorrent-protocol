@@ -22,15 +22,15 @@ public class PeerConnection(byte[] infoHash, Peer peer) : IDisposable
             if (lengthRead > 0)
                 break;
 
-            Console.WriteLine($"[{retryCount + 1}] Trying to get handshake response...");
+            Console.WriteLine($"[{retryCount + 1}] Trying to get handshake response from peer '{peer.Ip}:{peer.Port}'.");
             await Task.Delay(1000);
             retryCount++;
         }
 
         if (retryCount == maxRetries)
-            throw new InvalidOperationException("Failed to get handshake response");
+            throw new InvalidOperationException($"Failed to get handshake response from peer '{peer.Ip}:{peer.Port}'.");
 
-        Console.WriteLine("Handshake completed");
+        Console.WriteLine($"Handshake with peer '{peer.Ip}:{peer.Port}' completed.");
         var responsePeerId = responseBuffer[48..handshakeMessage.Length];
         Console.WriteLine($"Peer ID: {BitConverter.ToString(responsePeerId).Replace("-", "").ToLower()}");
         
