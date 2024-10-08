@@ -78,6 +78,6 @@ public class Download : IBCommand
 
         await Task.WhenAll(tasks);
         await File.WriteAllBytesAsync(fileLocation, fileData);
-        Console.WriteLine("Download completed");
+        Console.WriteLine($"Download completed: '{fileLocation}'.");
     }
 }
