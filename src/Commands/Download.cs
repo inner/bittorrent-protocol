@@ -46,7 +46,7 @@ public class Download : IBCommand
         var torrentFilename = args[3];
         var torrent = new Torrent(await File.ReadAllBytesAsync(torrentFilename));
 
-        var peerList = (await TrackerExtensions.DiscoverPeers(torrent.TrackerUrl, torrent.InfoHash, torrent.Length)).Skip(1).Take(1);
+        var peerList = (await TrackerExtensions.DiscoverPeers(torrent.TrackerUrl, torrent.InfoHash, torrent.Length)).Take(1);
         var pieceQueue = new ConcurrentQueue<int>(Enumerable.Range(0, torrent.PieceHashes.Count));
         var fileData = new byte[torrent.Length];
         var tasks = new List<Task>();
