@@ -14,7 +14,7 @@ public class PeerConnection(byte[] infoHash, Peer peer) : IDisposable
         await networkStream.WriteAsync(handshakeMessage);
 
         var responseBuffer = new byte[handshakeMessage.Length];
-        const int maxRetries = 10;
+        const int maxRetries = 1;
         var retryCount = 0;
         while (retryCount < maxRetries)
         {
