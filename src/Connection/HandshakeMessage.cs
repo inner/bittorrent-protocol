@@ -1,4 +1,5 @@
 using System.Text;
+using codecrafters_bittorrent.Extensions;
 
 namespace codecrafters_bittorrent.Connection;
 
@@ -14,7 +15,7 @@ public static class HandshakeMessage
         
         var peerId = peerIdentification != null
             ? Encoding.UTF8.GetBytes(peerIdentification)
-            : Encoding.UTF8.GetBytes(GeneratePeerId());
+            : Encoding.UTF8.GetBytes(TrackerExtensions.GeneratePeerId());
 
         var handshakeBytes = new List<byte> { protocolStringLengthBytes };
         handshakeBytes.AddRange(protocolStringBytes);
@@ -23,13 +24,5 @@ public static class HandshakeMessage
         handshakeBytes.AddRange(peerId);
         
         return handshakeBytes.ToArray();
-    }
-    
-    private static string GeneratePeerId()
-    {
-        var random = new Random();
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        return new string(Enumerable.Repeat(chars, 20)
-            .Select(s => s[random.Next(s.Length)]).ToArray());
     }
 }
