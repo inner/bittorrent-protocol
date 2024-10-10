@@ -12,7 +12,7 @@ public class Peers : IBCommand
         var peers = await TrackerExtensions.DiscoverPeers(torrent.TrackerUrl, torrent.InfoHash, torrent.Length);
         foreach (var peer in peers)
         {
-            Console.WriteLine(peer);
+            Console.WriteLine($"{peer.Ip}:{peer.Port}");
         }
     }
 }
