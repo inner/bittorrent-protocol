@@ -24,5 +24,16 @@ public class MagnetHandshake : IBCommand
         
         var extensionMessage = ExtensionHandshakeMessage.Create();
         await networkStream.WriteAsync(extensionMessage);
+        
+        var extensionHandshakeResponse = networkStream.ReadMessage(PeerMessageType.Extension);
+        var payload = extensionHandshakeResponse[5..];
+        
+        var index = 0;
+        var extensionHandshakeResponsePayload = BencodeDecoder.DecodeDictionary(ref payload, ref index);
+        
+        if (extensionHandshakeResponsePayload.TryGetValue("ut_metadata"u8.ToArray(), out var metadata))
+        {
+            Console.WriteLine($"Peer Metadata Extension ID: {metadata}");
+        }
     }
 }

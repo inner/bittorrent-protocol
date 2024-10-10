@@ -27,7 +27,6 @@ public static class ExtensionHandshakeMessage
         message.AddRange(lengthBytes);
         message.Add((byte)PeerMessageType.Extension);
         message.AddRange(payloadBytes);
-
         return message.ToArray();
     }
 }
