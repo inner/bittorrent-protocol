@@ -56,7 +56,7 @@ public class Download : IBCommand
             tasks.Add(Task.Run(async () =>
             {
                 using var peerConnection = new PeerConnection(torrent.InfoHash, peer);
-                var networkStream = await peerConnection.Handshake();
+                var (networkStream, _) = await peerConnection.Handshake();
                 networkStream.Unchoke();
 
                 while (pieceQueue.TryDequeue(out var pieceIndex))

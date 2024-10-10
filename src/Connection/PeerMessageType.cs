@@ -11,5 +11,6 @@ public enum PeerMessageType
     Request = 6,
     Piece = 7,
     Cancel = 8,
-    Port = 9
+    Port = 9,
+    Extension = 20
 }

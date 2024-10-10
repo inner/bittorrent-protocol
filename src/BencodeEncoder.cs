@@ -10,6 +10,7 @@ public static class BencodeEncoder
             string str => EncodeString(Encoding.UTF8.GetBytes(str)),
             byte[] bytes => EncodeString(bytes),
             long lng => EncodeInteger(lng),
+            int i => EncodeInteger(i),
             List<object> list => EncodeList(list),
             Dictionary<byte[], object> dict => EncodeDictionary(dict),
             _ => throw new ArgumentException($"Invalid value type: {value.GetType()}")
@@ -47,7 +48,7 @@ public static class BencodeEncoder
     public static byte[] EncodeDictionary(Dictionary<byte[], object> value)
     {
         var bytes = new List<byte> { (byte)'d' };
-        
+
         foreach (var key in value.Keys)
         {
             var k = EncodeString(key);

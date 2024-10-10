@@ -13,6 +13,16 @@ public class MagnetHandshake : IBCommand
 
         var peer = (await TrackerExtensions.DiscoverPeers(trackerUrl, infoHash, 999)).First();
         using var peerConnection = new PeerConnection(infoHash, peer);
-        _ = await peerConnection.Handshake();
+        var (networkStream, response) = await peerConnection.Handshake();
+        networkStream.ReadMessage(PeerMessageType.Bitfield);
+        
+        if (!response.SupportsExtensions())
+        {
+            Console.WriteLine("Peer does not support extensions.");
+            return;
+        }
+        
+        var extensionMessage = ExtensionHandshakeMessage.Create();
+        await networkStream.WriteAsync(extensionMessage);
     }
 }

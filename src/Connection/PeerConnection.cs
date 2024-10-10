@@ -7,7 +7,7 @@ public class PeerConnection(byte[] infoHash, Peer peer) : IDisposable
     private readonly TcpClient tcpClient = new(peer.Ip, peer.Port);
     private NetworkStream? networkStream;
 
-    public async Task<NetworkStream> Handshake()
+    public async Task<(NetworkStream, byte[])> Handshake()
     {
         networkStream = tcpClient.GetStream();
         var handshakeMessage = HandshakeMessage.Create(infoHash);
@@ -34,7 +34,7 @@ public class PeerConnection(byte[] infoHash, Peer peer) : IDisposable
         var responsePeerId = responseBuffer[48..handshakeMessage.Length];
         Console.WriteLine($"Peer ID: {BitConverter.ToString(responsePeerId).Replace("-", "").ToLower()}");
         
-        return networkStream;
+        return (networkStream, responseBuffer);
     }
 
     public void Dispose()

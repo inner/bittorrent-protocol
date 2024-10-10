@@ -14,9 +14,9 @@ public class DownloadPiece : IBCommand
         var torrent = new Torrent(await File.ReadAllBytesAsync(torrentFilename));
         var peer = (await TrackerExtensions.DiscoverPeers(
             torrent.TrackerUrl, torrent.InfoHash, torrent.Length)).First();
-        
+
         using var peerConnection = new PeerConnection(torrent.InfoHash, peer);
-        var networkStream = await peerConnection.Handshake();
+        var (networkStream, _) = await peerConnection.Handshake();
         networkStream.Unchoke();
         var pieceData = await networkStream.DownloadPiece(torrent, pieceIndex);
         await File.WriteAllBytesAsync(pieceLocation, pieceData);

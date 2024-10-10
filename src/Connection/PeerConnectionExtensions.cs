@@ -50,7 +50,7 @@ public static class PeerConnectionExtensions
         Console.WriteLine($"Piece {pieceIndex} integrity verified");
     }
 
-    private static byte[] ReadMessage(this NetworkStream networkStream, PeerMessageType messageId)
+    public static byte[] ReadMessage(this NetworkStream networkStream, PeerMessageType messageId)
     {
         var messageLength = networkStream.ReadMessageLength();
         var messageIdByte = networkStream.ReadMessageId();
@@ -91,5 +91,25 @@ public static class PeerConnectionExtensions
         networkStream.ReadMessage(PeerMessageType.Bitfield);
         networkStream.SendInterested();
         networkStream.ReadMessage(PeerMessageType.Unchoke);
+    }
+    
+    public static void SendBitfield(this NetworkStream networkStream)
+    {
+        var bitfieldMessage = BitfieldMessage.Create();
+        networkStream.Write(bitfieldMessage);
+        networkStream.ReadMessage(PeerMessageType.Bitfield);
+    }
+    
+    public static bool SupportsExtensions(this byte[] handshakeResponseBuffer)
+    {
+        var reservedBytes = handshakeResponseBuffer
+            // skip protocol string ("19:BitTorrent protocol")
+            .Skip(20)
+            // take the next 8 bytes (reserved bytes)
+            .Take(8)
+            .ToArray();
+        
+        // 0x10 = 0b00010000
+        return (reservedBytes[5] & 0x10) != 0;
     }
 }
