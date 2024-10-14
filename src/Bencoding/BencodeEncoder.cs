@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace codecrafters_bittorrent;
+namespace codecrafters_bittorrent.Bencoding;
 public static class BencodeEncoder
 {
     public static byte[] Encode(object value)

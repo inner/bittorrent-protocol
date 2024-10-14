@@ -5,7 +5,7 @@ using codecrafters_bittorrent.Extensions;
 
 namespace codecrafters_bittorrent.Commands;
 
-public class MagnetHandshake : IBCommand
+public class MagnetInfo : IBCommand
 {
     public async Task Execute(string[] args)
     {
@@ -17,24 +17,30 @@ public class MagnetHandshake : IBCommand
         using var peerConnection = new PeerConnection(infoHash, peer);
         var (networkStream, response) = await peerConnection.Handshake();
         networkStream.ReadMessage(PeerMessageType.Bitfield);
-        
+
         if (!response.SupportsExtensions())
         {
             Console.WriteLine("Peer does not support extensions.");
             return;
         }
-        
+
         var extensionMessage = ExtensionHandshakeMessage.Create();
         await networkStream.WriteAsync(extensionMessage);
-        
+
         var extensionHandshakeResponse = networkStream.ReadMessage(PeerMessageType.Extension);
         var payload = extensionHandshakeResponse[5..];
-        
+
+        byte? extensionMessageId = null!;
         var index = 0;
         var extensionHandshakeResponsePayload = BencodeDecoder.DecodeDictionary(ref payload, ref index);
-        if (extensionHandshakeResponsePayload.TryGetValue("ut_metadata"u8.ToArray(), out var extensionMessageId))
+        if (extensionHandshakeResponsePayload.TryGetValue("ut_metadata"u8.ToArray(), out var extensionMessageIdObj) &&
+            extensionMessageIdObj is long extensionMessageIdLong)
         {
+            extensionMessageId = (byte)extensionMessageIdLong;
             Console.WriteLine($"Peer Metadata Extension ID: {extensionMessageId}");
         }
+
+        var metadataRequestMessage = MetadataRequestMessage.Create(extensionMessageId.Value, 0);
+        await networkStream.WriteAsync(metadataRequestMessage);
     }
 }

@@ -1,4 +1,4 @@
-namespace codecrafters_bittorrent;
+namespace codecrafters_bittorrent.Bencoding;
 
 public enum BencodingType
 {

@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using codecrafters_bittorrent.Bencoding;
 
 namespace codecrafters_bittorrent.Extensions;
 

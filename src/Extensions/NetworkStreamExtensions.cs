@@ -1,9 +1,11 @@
 using System.Net.Sockets;
 using System.Security.Cryptography;
+using codecrafters_bittorrent.Connection;
+using codecrafters_bittorrent.Connection.Messages;
 
-namespace codecrafters_bittorrent.Connection;
+namespace codecrafters_bittorrent.Extensions;
 
-public static class PeerConnectionExtensions
+public static class NetworkStreamExtensions
 {
     private const int BlockSize = 16384;
 

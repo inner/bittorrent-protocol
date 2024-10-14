@@ -1,7 +1,7 @@
 using System.Text;
 using codecrafters_bittorrent.Extensions;
 
-namespace codecrafters_bittorrent.Connection;
+namespace codecrafters_bittorrent.Connection.Messages;
 
 public static class HandshakeMessage
 {

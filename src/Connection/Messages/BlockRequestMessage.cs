@@ -1,4 +1,4 @@
-namespace codecrafters_bittorrent.Connection;
+namespace codecrafters_bittorrent.Connection.Messages;
 
 public static class BlockRequestMessage
 {

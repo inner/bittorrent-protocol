@@ -1,7 +1,7 @@
 using System.Text;
 using codecrafters_bittorrent.Extensions;
 
-namespace codecrafters_bittorrent;
+namespace codecrafters_bittorrent.Bencoding;
 
 public static class BencodeDecoder
 {

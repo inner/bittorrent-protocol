@@ -1,4 +1,6 @@
-namespace codecrafters_bittorrent.Connection;
+using codecrafters_bittorrent.Bencoding;
+
+namespace codecrafters_bittorrent.Connection.Messages;
 
 public static class ExtensionHandshakeMessage
 {
