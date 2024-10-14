@@ -18,7 +18,7 @@ public class DownloadPiece : IBCommand
         using var peerConnection = new PeerConnection(torrent.InfoHash, peer);
         var (networkStream, _) = await peerConnection.Handshake();
         networkStream.Unchoke();
-        var pieceData = await networkStream.DownloadPiece(torrent, pieceIndex);
+        var pieceData = await networkStream.DownloadTorrentPiece(torrent, pieceIndex);
         await File.WriteAllBytesAsync(pieceLocation, pieceData);
         Console.WriteLine($"Piece downloaded to {pieceLocation}");
     }

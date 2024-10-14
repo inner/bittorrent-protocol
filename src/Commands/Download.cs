@@ -63,7 +63,7 @@ public class Download : IBCommand
                 {
                     try
                     {
-                        var piece = await networkStream.DownloadPiece(torrent, pieceIndex);
+                        var piece = await networkStream.DownloadTorrentPiece(torrent, pieceIndex);
                         piece.CopyTo(fileData, pieceIndex * torrent.PieceLength);
                         Console.WriteLine($"Downloaded piece {pieceIndex} from peer '{peer.Ip}:{peer.Port}'");
                     }

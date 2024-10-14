@@ -9,11 +9,23 @@ public static class NetworkStreamExtensions
 {
     private const int BlockSize = 16384;
 
-    public static async Task<byte[]> DownloadPiece(this NetworkStream networkStream, Torrent torrent, int pieceIndex)
+    public static async Task<byte[]> DownloadTorrentPiece(this NetworkStream networkStream, Torrent torrent,
+        int pieceIndex)
+    {
+        return await DownloadPiece(
+            networkStream,
+            torrent.Length,
+            torrent.PieceLength,
+            torrent.PieceHashes[pieceIndex],
+            pieceIndex);
+    }
+
+    public static async Task<byte[]> DownloadPiece(this NetworkStream networkStream, long length, long pieceLength,
+        string pieceHash, int pieceIndex)
     {
         try
         {
-            var pieceLength = Math.Min(torrent.Length - pieceIndex * torrent.PieceLength, torrent.PieceLength);
+            pieceLength = Math.Min(length - pieceIndex * pieceLength, pieceLength);
 
             Console.WriteLine($"Downloading piece index: {pieceIndex}.");
             Console.WriteLine($"Piece Length: {pieceLength}");
@@ -30,7 +42,7 @@ public static class NetworkStreamExtensions
                 pieceData.AddRange(data[8..]);
             }
 
-            VerifyPieceIntegrity(pieceData.ToArray(), torrent.PieceHashes[pieceIndex], pieceIndex);
+            VerifyPieceIntegrity(pieceData.ToArray(), pieceHash, pieceIndex);
             Console.WriteLine($"Downloaded piece index: {pieceIndex}.");
             return pieceData.ToArray();
         }
@@ -82,7 +94,7 @@ public static class NetworkStreamExtensions
         return (byte)networkStream.ReadByte();
     }
 
-    private static void SendInterested(this NetworkStream networkStream)
+    public static void SendInterested(this NetworkStream networkStream)
     {
         var interestedMessage = new byte[] { 0, 0, 0, 1, (byte)PeerMessageType.Interested };
         networkStream.Write(interestedMessage);
@@ -94,14 +106,14 @@ public static class NetworkStreamExtensions
         networkStream.SendInterested();
         networkStream.ReadMessage(PeerMessageType.Unchoke);
     }
-    
+
     public static void SendBitfield(this NetworkStream networkStream)
     {
         var bitfieldMessage = BitfieldMessage.Create();
         networkStream.Write(bitfieldMessage);
         networkStream.ReadMessage(PeerMessageType.Bitfield);
     }
-    
+
     public static bool SupportsExtensions(this byte[] handshakeResponseBuffer)
     {
         var reservedBytes = handshakeResponseBuffer
@@ -110,7 +122,7 @@ public static class NetworkStreamExtensions
             // take the next 8 bytes (reserved bytes)
             .Take(8)
             .ToArray();
-        
+
         // 0x10 = 0b00010000
         return (reservedBytes[5] & 0x10) != 0;
     }
