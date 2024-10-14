@@ -42,6 +42,9 @@ switch (command)
     case "magnet_download_piece":
         await new MagnetDownloadPiece().Execute(args);
         break;
+    case "magnet_download":
+        await new MagnetDownload().Execute(args);
+        break;
     default:
         throw new InvalidOperationException($"Invalid command: {command}");
 }
