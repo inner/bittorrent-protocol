@@ -11,15 +11,23 @@ public static class TorrentExtensions
         if (encodedValue == null || encodedValue.Length == 0)
             throw new ArgumentNullException(nameof(encodedValue));
 
+        // increase if the first character is ASCII code 4 (EoT)
+        if (encodedValue[index] == 0x04)
+            index++;
+
+        if (index >= encodedValue.Length)
+            throw new InvalidOperationException("No valid Bencode type found in the encoded value.");
+
         if (char.IsDigit((char)encodedValue[index]))
             return BencodingType.String;
 
         return encodedValue[index] switch
         {
-            (byte)'i' => BencodingType.Integer,
-            (byte)'l' => BencodingType.List,
-            (byte)'d' => BencodingType.Dictionary,
-            _ => throw new InvalidOperationException("Invalid encoded value: " + Encoding.UTF8.GetString(encodedValue))
+            BencodingIndicators.IntegerIndicator => BencodingType.Integer,
+            BencodingIndicators.ListIndicator => BencodingType.List,
+            BencodingIndicators.DictionaryIndicator => BencodingType.Dictionary,
+            _ => throw new InvalidOperationException(
+                $"Invalid encoded value: [{index}]: {Encoding.UTF8.GetString(encodedValue)}")
         };
     }
 
@@ -47,7 +55,7 @@ public static class TorrentExtensions
         var bencodedInfo = BencodeEncoder.EncodeDictionary(infoDictionary);
         return SHA1.HashData(bencodedInfo);
     }
-    
+
     public static string ToInfoHashHex(this byte[] infoHash)
     {
         return BitConverter.ToString(infoHash).Replace("-", "").ToLower();

@@ -37,7 +37,7 @@ public static class BencodeDecoder
     private static object DecodeInteger(ref byte[] encodedValue, ref int index)
     {
         index++;
-        var end = Array.IndexOf(encodedValue, (byte)'e', index);
+        var end = Array.IndexOf(encodedValue, BencodingIndicators.EndIndicator, index);
         var value = long.Parse(Encoding.ASCII.GetString(encodedValue, index, end - index));
         index = end + 1;
         return value;
@@ -48,7 +48,7 @@ public static class BencodeDecoder
         var list = new List<object>();
         index++;
 
-        while (encodedValue[index] != (byte)'e')
+        while (encodedValue[index] != BencodingIndicators.EndIndicator)
         {
             list.Add(Decode(ref encodedValue, ref index));
         }
@@ -62,7 +62,7 @@ public static class BencodeDecoder
         var dictionary = new Dictionary<byte[], object>(new ByteArrayEqualityComparer());
         index++;
 
-        while (encodedValue[index] != (byte)'e')
+        while (encodedValue[index] != BencodingIndicators.EndIndicator)
         {
             var key = DecodeString(ref encodedValue, ref index);
             var value = Decode(ref encodedValue, ref index);

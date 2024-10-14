@@ -37,10 +37,34 @@ public class MagnetInfo : IBCommand
             extensionMessageIdObj is long extensionMessageIdLong)
         {
             extensionMessageId = (byte)extensionMessageIdLong;
-            Console.WriteLine($"Peer Metadata Extension ID: {extensionMessageId}");
         }
 
         var metadataRequestMessage = MetadataRequestMessage.Create(extensionMessageId.Value, 0);
         await networkStream.WriteAsync(metadataRequestMessage);
+        
+        var metadataResponseMessage = networkStream.ReadMessage(PeerMessageType.Extension);
+        
+        // skip the dictionary part of the message
+        index = 0;
+        BencodeDecoder.Decode(ref metadataResponseMessage, ref index);
+        
+        // get the metadata part of the message
+        var metadata = metadataResponseMessage[index..];
+        index = 0;
+        var infoDictionary = BencodeDecoder.DecodeDictionary(ref metadata, ref index);
+        var length = infoDictionary.ToLength();
+        var pieceLength = infoDictionary.ToPieceLength();
+        var piecesInBytes = (byte[])infoDictionary["pieces"u8.ToArray()];
+        var pieceHashes = piecesInBytes.ToPieceHashes();
+
+        Console.WriteLine($"Tracker URL: {trackerUrl}");
+        Console.WriteLine($"Length: {length}");
+        Console.WriteLine($"Info Hash: {infoHash.ToInfoHashHex()}");
+        Console.WriteLine($"Piece Length: {pieceLength}");
+        Console.WriteLine("Piece Hashes:");
+        foreach (var pieceHash in pieceHashes)
+        {
+            Console.WriteLine(pieceHash);
+        }
     }
 }
