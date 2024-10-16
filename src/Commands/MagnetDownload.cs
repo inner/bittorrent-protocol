@@ -12,7 +12,7 @@ public class MagnetDownload : IBCommand
     {
         var fileLocation = args[2];
         var magnet = args[3];
-        
+
         var trackerUrl = magnet.GetTrackerUrl();
         var infoHash = magnet.GetInfoHash();
 
@@ -45,13 +45,13 @@ public class MagnetDownload : IBCommand
 
         var metadataRequestMessage = MetadataRequestMessage.Create(extensionMessageId.Value, 0);
         await networkStream.WriteAsync(metadataRequestMessage);
-        
+
         var metadataResponseMessage = networkStream.ReadMessage(PeerMessageType.Extension);
-        
+
         // skip the dictionary part of the message
         index = 0;
         BencodeDecoder.Decode(ref metadataResponseMessage, ref index);
-        
+
         // get the metadata part of the message
         var metadata = metadataResponseMessage[index..];
         index = 0;
@@ -60,11 +60,11 @@ public class MagnetDownload : IBCommand
         var pieceLength = infoDictionary.ToPieceLength();
         var piecesInBytes = (byte[])infoDictionary["pieces"u8.ToArray()];
         var pieceHashes = piecesInBytes.ToPieceHashes();
-        
+
         var pieceQueue = new ConcurrentQueue<int>(Enumerable.Range(0, pieceHashes.Count));
         var fileData = new byte[length];
         var tasks = new List<Task>();
-        
+
         foreach (var downloadPeer in peerList)
         {
             tasks.Add(Task.Run(async () =>
@@ -85,9 +85,10 @@ public class MagnetDownload : IBCommand
                             pieceLength,
                             pieceHashes[pieceIndex],
                             pieceIndex);
-                        
+
                         piece.CopyTo(fileData, pieceIndex * pieceLength);
-                        Console.WriteLine($"Downloaded piece {pieceIndex} from peer '{downloadPeer.Ip}:{downloadPeer.Port}'");
+                        Console.WriteLine(
+                            $"Downloaded piece {pieceIndex} from peer '{downloadPeer.Ip}:{downloadPeer.Port}'");
                     }
                     catch (Exception ex)
                     {
@@ -98,7 +99,7 @@ public class MagnetDownload : IBCommand
                 }
             }));
         }
-        
+
         await Task.WhenAll(tasks);
         await File.WriteAllBytesAsync(fileLocation, fileData);
         Console.WriteLine($"Download completed: '{fileLocation}'.");

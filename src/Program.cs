@@ -6,45 +6,26 @@ var programArgs = args
 
 var command = programArgs[0] ?? throw new ArgumentNullException(programArgs[0]);
 
-switch (command)
+var commandDictionary = new Dictionary<string, IBCommand>
 {
-    case "decode":
-    {
-        await new Decode().Execute(args);
-        break;
-    }
-    case "info":
-    {
-        await new Info().Execute(args);
-        break;
-    }
-    case "peers":
-        await new Peers().Execute(args);
-        break;
-    case "handshake":
-        await new Handshake().Execute(args);
-        break;
-    case "download_piece":
-        await new DownloadPiece().Execute(args);
-        break;
-    case "download":
-        await new Download().Execute(args);
-        break;
-    case "magnet_parse":
-        await new MagnetParse().Execute(args);
-        break;
-    case "magnet_handshake":
-        await new MagnetHandshake().Execute(args);
-        break;
-    case "magnet_info":
-        await new MagnetInfo().Execute(args);
-        break;
-    case "magnet_download_piece":
-        await new MagnetDownloadPiece().Execute(args);
-        break;
-    case "magnet_download":
-        await new MagnetDownload().Execute(args);
-        break;
-    default:
-        throw new InvalidOperationException($"Invalid command: {command}");
+    { "decode", new Decode() },
+    { "info", new Info() },
+    { "peers", new Peers() },
+    { "handshake", new Handshake() },
+    { "download_piece", new DownloadPiece() },
+    { "download", new Download() },
+    { "magnet_parse", new MagnetParse() },
+    { "magnet_handshake", new MagnetHandshake() },
+    { "magnet_info", new MagnetInfo() },
+    { "magnet_download_piece", new MagnetDownloadPiece() },
+    { "magnet_download", new MagnetDownload() }
+};
+
+if (commandDictionary.TryGetValue(command, out var commandToExecute))
+{
+    await commandToExecute.Execute(args);
+}
+else
+{
+    throw new ArgumentException($"Unknown command: {command}");
 }
