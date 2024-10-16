@@ -24,7 +24,7 @@ public class MagnetDownload : IBCommand
         {
             tasks.Add(Task.Run(async () =>
             {
-                var peerConnection = new PeerConnection(magnet.InfoHash, peer);
+                using var peerConnection = new PeerConnection(magnet.InfoHash, peer);
                 var (ns, _) = await peerConnection.Handshake();
                 ns.Unchoke(extensionEnabled: true);
 
