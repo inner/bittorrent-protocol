@@ -33,10 +33,13 @@ public class Magnet
             .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult();
+
+        if (!response.SupportsExtensions())
+            throw new InvalidOperationException("Peer does not support extensions.");
+
         ns.ReadMessage(PeerMessageType.Bitfield);
 
-        if (response.SupportsExtensions())
-            SupportsExtensions = true;
+        SupportsExtensions = true;
 
         var extensionMessage = ExtensionHandshakeMessage.Create();
         ns.WriteAsync(extensionMessage)
