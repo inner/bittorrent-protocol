@@ -37,9 +37,9 @@ public class Magnet
         if (!response.SupportsExtensions())
             throw new InvalidOperationException("Peer does not support extensions.");
 
-        ns.ReadMessage(PeerMessageType.Bitfield);
-
         SupportsExtensions = true;
+        
+        ns.ReadMessage(PeerMessageType.Bitfield);
 
         var extensionMessage = ExtensionHandshakeMessage.Create();
         ns.WriteAsync(extensionMessage)
@@ -49,8 +49,37 @@ public class Magnet
 
         var extensionHandshakeResponse = ns.ReadMessage(PeerMessageType.Extension);
         var payload = extensionHandshakeResponse[5..];
+        var extensionMessageId = GetExtensionMessageId(payload);
 
-        byte? extensionMessageId = null!;
+        var metadataRequestMessage = MetadataRequestMessage.Create(extensionMessageId, 0);
+        ns.WriteAsync(metadataRequestMessage)
+            .ConfigureAwait(false)
+            .GetAwaiter()
+            .GetResult();
+
+        var metadataResponseMessage = ns.ReadMessage(PeerMessageType.Extension);
+        
+        var index = GetDictionaryEndPositionIndex(ref metadataResponseMessage);
+        SetInfoDictionary(metadataResponseMessage[index..]);
+    }
+
+    private void SetInfoDictionary(byte[] metadata)
+    {
+        var index = 0;
+        InfoDictionary = BencodeDecoder.DecodeDictionary(ref metadata, ref index);
+    }
+
+    private static int GetDictionaryEndPositionIndex(ref byte[] metadataResponseMessage)
+    {
+        var index = 0;
+        BencodeDecoder.Decode(ref metadataResponseMessage, ref index);
+        return index;
+    }
+
+    private static byte GetExtensionMessageId(byte[] payload)
+    {
+        byte extensionMessageId = 0;
+        
         var index = 0;
         var extensionHandshakeResponsePayload = BencodeDecoder.DecodeDictionary(ref payload, ref index);
         if (extensionHandshakeResponsePayload.TryGetValue("ut_metadata"u8.ToArray(), out var extensionMessageIdObj) &&
@@ -58,24 +87,11 @@ public class Magnet
         {
             extensionMessageId = (byte)extensionMessageIdLong;
         }
+        
+        if (extensionMessageId == 0)
+            throw new InvalidOperationException("Extension message ID not found.");
 
-        var metadataRequestMessage = MetadataRequestMessage.Create(extensionMessageId.Value, 0);
-        ns.WriteAsync(metadataRequestMessage)
-            .ConfigureAwait(false)
-            .GetAwaiter()
-            .GetResult();
-
-        var metadataResponseMessage = ns.ReadMessage(PeerMessageType.Extension);
-
-        // skip the dictionary part of the message
-        index = 0;
-        BencodeDecoder.Decode(ref metadataResponseMessage, ref index);
-
-        // get the metadata part of the message
-        var metadata = metadataResponseMessage[index..];
-        index = 0;
-
-        InfoDictionary = BencodeDecoder.DecodeDictionary(ref metadata, ref index);
+        return extensionMessageId;
     }
 
     private Peer GetPeer()
