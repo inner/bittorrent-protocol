@@ -33,13 +33,12 @@ public class Magnet
             .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult();
+        ns.ReadMessage(PeerMessageType.Bitfield);
 
         if (!response.SupportsExtensions())
             throw new InvalidOperationException("Peer does not support extensions.");
 
         SupportsExtensions = true;
-        
-        ns.ReadMessage(PeerMessageType.Bitfield);
 
         var extensionMessage = ExtensionHandshakeMessage.Create();
         ns.WriteAsync(extensionMessage)
@@ -58,7 +57,6 @@ public class Magnet
             .GetResult();
 
         var metadataResponseMessage = ns.ReadMessage(PeerMessageType.Extension);
-        
         var index = GetDictionaryEndPositionIndex(ref metadataResponseMessage);
         SetInfoDictionary(metadataResponseMessage[index..]);
     }
@@ -79,7 +77,7 @@ public class Magnet
     private static byte GetExtensionMessageId(byte[] payload)
     {
         byte extensionMessageId = 0;
-        
+
         var index = 0;
         var extensionHandshakeResponsePayload = BencodeDecoder.DecodeDictionary(ref payload, ref index);
         if (extensionHandshakeResponsePayload.TryGetValue("ut_metadata"u8.ToArray(), out var extensionMessageIdObj) &&
@@ -87,7 +85,7 @@ public class Magnet
         {
             extensionMessageId = (byte)extensionMessageIdLong;
         }
-        
+
         if (extensionMessageId == 0)
             throw new InvalidOperationException("Extension message ID not found.");
 
@@ -96,7 +94,7 @@ public class Magnet
 
     private Peer GetPeer()
     {
-        return TrackerExtensions.DiscoverPeers(TrackerUrl, InfoHash, 999)
+        return TrackerExtensions.DiscoverPeers(TrackerUrl, InfoHash, leftLength: 999)
             .ConfigureAwait(false)
             .GetAwaiter()
             .GetResult()
