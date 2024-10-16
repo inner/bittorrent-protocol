@@ -44,26 +44,30 @@ public class Download : IBCommand
     {
         var fileLocation = args[2];
         var torrentFilename = args[3];
+        
         var torrent = new Torrent(await File.ReadAllBytesAsync(torrentFilename));
-
-        var peerList = (await TrackerExtensions.DiscoverPeers(torrent.TrackerUrl, torrent.InfoHash, torrent.Length));
+        var peers = await TrackerExtensions.DiscoverPeers(
+            torrent.TrackerUrl,
+            torrent.InfoHash,
+            leftLength: torrent.Length);
+        
         var pieceQueue = new ConcurrentQueue<int>(Enumerable.Range(0, torrent.PieceHashes.Count));
         var fileData = new byte[torrent.Length];
         var tasks = new List<Task>();
 
-        foreach (var peer in peerList)
+        foreach (var peer in peers)
         {
             tasks.Add(Task.Run(async () =>
             {
                 using var peerConnection = new PeerConnection(torrent.InfoHash, peer);
-                var (networkStream, _) = await peerConnection.Handshake();
-                networkStream.Unchoke();
+                var (ns, _) = await peerConnection.Handshake();
+                ns.Unchoke();
 
                 while (pieceQueue.TryDequeue(out var pieceIndex))
                 {
                     try
                     {
-                        var piece = await networkStream.DownloadTorrentPiece(torrent, pieceIndex);
+                        var piece = await ns.DownloadTorrentPiece(torrent, pieceIndex);
                         piece.CopyTo(fileData, pieceIndex * torrent.PieceLength);
                         Console.WriteLine($"Downloaded piece {pieceIndex} from peer '{peer.Ip}:{peer.Port}'");
                     }
