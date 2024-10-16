@@ -1,5 +1,6 @@
 namespace codecrafters_bittorrent.Connection;
 
+// https://www.bittorrent.org/beps/bep_0003.html#peer-messages
 public enum PeerMessageType
 {
     Choke = 0,

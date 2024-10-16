@@ -16,8 +16,8 @@ public class MagnetDownload : IBCommand
         var trackerUrl = magnet.GetTrackerUrl();
         var infoHash = magnet.GetInfoHash();
 
-        var peerList = await TrackerExtensions.DiscoverPeers(trackerUrl, infoHash, 999);
-        var peer = peerList.First();
+        var peers = await TrackerExtensions.DiscoverPeers(trackerUrl, infoHash, 999);
+        var peer = peers.First();
         using var peerConnection = new PeerConnection(infoHash, peer);
         var (networkStream, response) = await peerConnection.Handshake();
         networkStream.ReadMessage(PeerMessageType.Bitfield);
@@ -45,7 +45,6 @@ public class MagnetDownload : IBCommand
 
         var metadataRequestMessage = MetadataRequestMessage.Create(extensionMessageId.Value, 0);
         await networkStream.WriteAsync(metadataRequestMessage);
-
         var metadataResponseMessage = networkStream.ReadMessage(PeerMessageType.Extension);
 
         // skip the dictionary part of the message
@@ -65,7 +64,7 @@ public class MagnetDownload : IBCommand
         var fileData = new byte[length];
         var tasks = new List<Task>();
 
-        foreach (var downloadPeer in peerList)
+        foreach (var downloadPeer in peers)
         {
             tasks.Add(Task.Run(async () =>
             {
@@ -93,7 +92,9 @@ public class MagnetDownload : IBCommand
                     catch (Exception ex)
                     {
                         Console.WriteLine(
-                            $"Failed to download piece {pieceIndex} from peer '{downloadPeer.Ip}:{downloadPeer.Port}': {ex.Message}");
+                            $"Failed to download piece {pieceIndex} from peer " +
+                            $"'{downloadPeer.Ip}:{downloadPeer.Port}': {ex.Message}");
+                        
                         pieceQueue.Enqueue(pieceIndex);
                     }
                 }

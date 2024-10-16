@@ -2,6 +2,8 @@ using codecrafters_bittorrent.Bencoding;
 
 namespace codecrafters_bittorrent.Connection.Messages;
 
+// https://www.bittorrent.org/beps/bep_0009.html#ut_metadata
+// https://www.bittorrent.org/beps/bep_0010.html#handshake-message
 public static class ExtensionHandshakeMessage
 {
     public static byte[] Create()

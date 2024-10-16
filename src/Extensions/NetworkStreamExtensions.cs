@@ -64,18 +64,17 @@ public static class NetworkStreamExtensions
         Console.WriteLine($"Piece {pieceIndex} integrity verified");
     }
 
-    public static byte[] ReadMessage(this NetworkStream networkStream, PeerMessageType messageId)
+    public static byte[] ReadMessage(this NetworkStream networkStream, PeerMessageType messageIdType)
     {
         var messageLength = networkStream.ReadMessageLength();
-        var messageIdByte = networkStream.ReadMessageId();
-        if (messageIdByte != (byte)messageId)
-        {
-            throw new Exception($"Expected messageId: {messageId}, but received: {messageIdByte}");
-        }
+        var messageId = (byte)networkStream.ReadByte();
+        
+        if (messageId != (byte)messageIdType)
+            throw new Exception($"Expected messageIdType: {messageIdType}, but received: {messageId}");
 
-        var data = new byte[messageLength - 1];
-        networkStream.ReadExactly(data, 0, data.Length);
-        return data;
+        var message = new byte[messageLength - 1];
+        networkStream.ReadExactly(message, 0, message.Length);
+        return message;
     }
 
     private static int ReadMessageLength(this NetworkStream networkStream)
@@ -87,11 +86,6 @@ public static class NetworkStreamExtensions
             Array.Reverse(messageLength);
 
         return BitConverter.ToInt32(messageLength.ToArray(), 0);
-    }
-
-    private static byte ReadMessageId(this NetworkStream networkStream)
-    {
-        return (byte)networkStream.ReadByte();
     }
 
     public static void SendInterested(this NetworkStream networkStream)
