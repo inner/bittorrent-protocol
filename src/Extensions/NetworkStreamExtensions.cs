@@ -107,13 +107,6 @@ public static class NetworkStreamExtensions
         networkStream.ReadMessage(PeerMessageType.Unchoke);
     }
 
-    public static void SendBitfield(this NetworkStream networkStream)
-    {
-        var bitfieldMessage = BitfieldMessage.Create();
-        networkStream.Write(bitfieldMessage);
-        networkStream.ReadMessage(PeerMessageType.Bitfield);
-    }
-
     public static bool SupportsExtensions(this byte[] handshakeResponseBuffer)
     {
         var reservedBytes = handshakeResponseBuffer
