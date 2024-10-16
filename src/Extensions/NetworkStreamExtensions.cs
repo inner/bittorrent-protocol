@@ -9,18 +9,17 @@ public static class NetworkStreamExtensions
 {
     private const int BlockSize = 16384;
 
-    public static async Task<byte[]> DownloadTorrentPiece(this NetworkStream networkStream, Torrent torrent,
-        int pieceIndex)
+    public static async Task<byte[]> DownloadTorrentPiece(this NetworkStream ns, Torrent torrent, int pieceIndex)
     {
         return await DownloadPiece(
-            networkStream,
+            ns,
             torrent.Length,
             torrent.PieceLength,
             torrent.PieceHashes[pieceIndex],
             pieceIndex);
     }
 
-    public static async Task<byte[]> DownloadPiece(this NetworkStream networkStream, long length, long pieceLength,
+    public static async Task<byte[]> DownloadPiece(this NetworkStream ns, long length, long pieceLength,
         string pieceHash, int pieceIndex)
     {
         try
@@ -37,8 +36,8 @@ public static class NetworkStreamExtensions
                 var blockSize = Math.Min(BlockSize, (int)pieceLength - i * BlockSize);
                 Console.WriteLine($"\t[{i}] Block Offset: {blockOffset}, Block Size: {blockSize}");
                 var requestMessage = BlockRequestMessage.Create(pieceIndex, blockOffset, blockSize);
-                await networkStream.WriteAsync(requestMessage);
-                var data = networkStream.ReadMessage(PeerMessageType.Piece);
+                await ns.WriteAsync(requestMessage);
+                var data = ns.ReadMessage(PeerMessageType.Piece);
                 pieceData.AddRange(data[8..]);
             }
 
@@ -68,7 +67,7 @@ public static class NetworkStreamExtensions
     {
         var messageLength = networkStream.ReadMessageLength();
         var messageId = (byte)networkStream.ReadByte();
-        
+
         if (messageId != (byte)messageIdType)
             throw new Exception($"Expected messageIdType: {messageIdType}, but received: {messageId}");
 
@@ -98,10 +97,10 @@ public static class NetworkStreamExtensions
     {
         networkStream.ReadMessage(PeerMessageType.Bitfield);
         networkStream.SendInterested();
-        
+
         if (extensionEnabled)
             networkStream.ReadMessage(PeerMessageType.Extension);
-        
+
         networkStream.ReadMessage(PeerMessageType.Unchoke);
     }
 
