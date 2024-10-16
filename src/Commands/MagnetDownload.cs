@@ -18,7 +18,9 @@ public class MagnetDownload : IBCommand
         var tasks = new List<Task>();
 
         var peers = await TrackerExtensions.DiscoverPeers(
-            magnet.TrackerUrl, magnet.InfoHash, leftLength: 999);
+            magnet.TrackerUrl,
+            magnet.InfoHash,
+            leftLength: 999);
 
         foreach (var peer in peers)
         {

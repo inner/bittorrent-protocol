@@ -20,7 +20,10 @@ public class Handshake : IBCommand
         }
         else
         {
-            var peers = await TrackerExtensions.DiscoverPeers(torrent.TrackerUrl, torrent.InfoHash, torrent.Length);
+            var peers = await TrackerExtensions.DiscoverPeers(
+                torrent.TrackerUrl,
+                torrent.InfoHash,
+                leftLength: torrent.Length);
             peer = peers.First();
         }
 

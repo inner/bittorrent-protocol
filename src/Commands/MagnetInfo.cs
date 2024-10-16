@@ -13,7 +13,12 @@ public class MagnetInfo : IBCommand
         var trackerUrl = magnet.GetTrackerUrl();
         var infoHash = magnet.GetInfoHash();
 
-        var peer = (await TrackerExtensions.DiscoverPeers(trackerUrl, infoHash, 999)).First();
+        var peer = (await TrackerExtensions.DiscoverPeers(
+                trackerUrl,
+                infoHash,
+                leftLength: 999))
+            .First();
+        
         using var peerConnection = new PeerConnection(infoHash, peer);
         var (networkStream, response) = await peerConnection.Handshake();
         networkStream.ReadMessage(PeerMessageType.Bitfield);
@@ -41,13 +46,13 @@ public class MagnetInfo : IBCommand
 
         var metadataRequestMessage = MetadataRequestMessage.Create(extensionMessageId.Value, 0);
         await networkStream.WriteAsync(metadataRequestMessage);
-        
+
         var metadataResponseMessage = networkStream.ReadMessage(PeerMessageType.Extension);
-        
+
         // skip the dictionary part of the message
         index = 0;
         BencodeDecoder.Decode(ref metadataResponseMessage, ref index);
-        
+
         // get the metadata part of the message
         var metadata = metadataResponseMessage[index..];
         index = 0;

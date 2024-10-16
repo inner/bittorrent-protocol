@@ -9,7 +9,11 @@ public class Peers : IBCommand
         var torrentBytes = await File.ReadAllBytesAsync(args[1] ?? throw new ArgumentNullException(args[1]));
         var torrent = new Torrent(torrentBytes);
 
-        var peers = await TrackerExtensions.DiscoverPeers(torrent.TrackerUrl, torrent.InfoHash, torrent.Length);
+        var peers = await TrackerExtensions.DiscoverPeers(
+            torrent.TrackerUrl,
+            torrent.InfoHash,
+            leftLength: torrent.Length);
+        
         foreach (var peer in peers)
         {
             Console.WriteLine($"{peer.Ip}:{peer.Port}");
