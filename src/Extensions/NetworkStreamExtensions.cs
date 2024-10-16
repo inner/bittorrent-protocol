@@ -94,10 +94,14 @@ public static class NetworkStreamExtensions
         networkStream.Write(interestedMessage);
     }
 
-    public static void Unchoke(this NetworkStream networkStream)
+    public static void Unchoke(this NetworkStream networkStream, bool extensionEnabled = false)
     {
         networkStream.ReadMessage(PeerMessageType.Bitfield);
         networkStream.SendInterested();
+        
+        if (extensionEnabled)
+            networkStream.ReadMessage(PeerMessageType.Extension);
+        
         networkStream.ReadMessage(PeerMessageType.Unchoke);
     }
 
