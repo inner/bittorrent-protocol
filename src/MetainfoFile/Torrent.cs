@@ -1,6 +1,6 @@
 using codecrafters_bittorrent.Extensions;
 
-namespace codecrafters_bittorrent;
+namespace codecrafters_bittorrent.MetainfoFile;
 
 public class Torrent : Metainfo
 {
@@ -13,6 +13,4 @@ public class Torrent : Metainfo
     }
 
     public override string TrackerUrl => TorrentDictionary.ToTrackerUrl();
-    public string InfoHashHex => InfoHash.ToInfoHashHex();
-    public string Name => InfoDictionary.ToName();
 }

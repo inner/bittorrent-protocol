@@ -1,3 +1,5 @@
+using codecrafters_bittorrent.MetainfoFile;
+
 namespace codecrafters_bittorrent.Commands;
 
 public class Info : IBCommand

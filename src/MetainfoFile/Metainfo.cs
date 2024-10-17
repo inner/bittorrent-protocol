@@ -1,14 +1,16 @@
 using codecrafters_bittorrent.Extensions;
 
-namespace codecrafters_bittorrent;
+namespace codecrafters_bittorrent.MetainfoFile;
 
 public abstract class Metainfo
 {
     protected Dictionary<byte[], object> InfoDictionary { get; init; } = null!;
     public abstract string TrackerUrl { get; }
-    private byte[] PiecesInBytes => InfoDictionary.ToPiecesInBytes();
+    public string Name => InfoDictionary.ToName();
     public virtual byte[] InfoHash => InfoDictionary.ToInfoHash();
+    public string InfoHashHex => InfoHash.ToInfoHashHex();
     public long Length => InfoDictionary.ToLength();
+    private byte[] PiecesInBytes => InfoDictionary.ToPiecesInBytes();
     public long PieceLength => InfoDictionary.ToPieceLength();
     public List<string> PieceHashes => PiecesInBytes.ToPieceHashes();
 }
