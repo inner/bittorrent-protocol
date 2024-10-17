@@ -2,7 +2,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using codecrafters_bittorrent.Connection;
 using codecrafters_bittorrent.Connection.Messages;
-using codecrafters_bittorrent.MetainfoFile;
+using codecrafters_bittorrent.Metainfo;
 
 namespace codecrafters_bittorrent.Extensions;
 

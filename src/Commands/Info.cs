@@ -1,4 +1,4 @@
-using codecrafters_bittorrent.MetainfoFile;
+using codecrafters_bittorrent.Metainfo;
 
 namespace codecrafters_bittorrent.Commands;
 

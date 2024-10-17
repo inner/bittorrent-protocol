@@ -1,6 +1,6 @@
 using codecrafters_bittorrent.Extensions;
 
-namespace codecrafters_bittorrent.MetainfoFile;
+namespace codecrafters_bittorrent.Metainfo;
 
 public abstract class Metainfo
 {

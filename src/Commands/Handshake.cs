@@ -1,6 +1,6 @@
 using codecrafters_bittorrent.Connection;
 using codecrafters_bittorrent.Extensions;
-using codecrafters_bittorrent.MetainfoFile;
+using codecrafters_bittorrent.Metainfo;
 
 namespace codecrafters_bittorrent.Commands;
 
