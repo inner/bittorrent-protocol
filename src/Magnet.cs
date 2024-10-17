@@ -5,26 +5,21 @@ using codecrafters_bittorrent.Extensions;
 
 namespace codecrafters_bittorrent;
 
-public class Magnet
+public class Magnet : Metainfo
 {
     private readonly string magnetUri;
-    private Dictionary<byte[], object> InfoDictionary { get; set; } = null!;
-    private byte[] PiecesInBytes => InfoDictionary.ToPiecesInBytes();
 
     public Magnet(string magnetUri)
     {
         this.magnetUri = magnetUri;
-        Initialize();
+        InfoDictionary = GetInfoDictionary();
     }
 
-    public string TrackerUrl => magnetUri.GetTrackerUrl();
-    public byte[] InfoHash => magnetUri.GetInfoHash();
+    public override string TrackerUrl => magnetUri.GetTrackerUrl();
+    public override byte[] InfoHash => magnetUri.GetInfoHash();
     public bool SupportsExtensions { get; private set; }
-    public long Length => InfoDictionary.ToLength();
-    public long PieceLength => InfoDictionary.ToPieceLength();
-    public List<string> PieceHashes => PiecesInBytes.ToPieceHashes();
 
-    private void Initialize()
+    private Dictionary<byte[], object> GetInfoDictionary()
     {
         var peer = GetPeer();
 
@@ -58,13 +53,9 @@ public class Magnet
 
         var metadataResponseMessage = ns.ReadMessage(PeerMessageType.Extension);
         var index = GetDictionaryEndPositionIndex(ref metadataResponseMessage);
-        SetInfoDictionary(metadataResponseMessage[index..]);
-    }
-
-    private void SetInfoDictionary(byte[] metadata)
-    {
-        var index = 0;
-        InfoDictionary = BencodeDecoder.DecodeDictionary(ref metadata, ref index);
+        var metadata = metadataResponseMessage[index..];
+        index = 0;
+        return BencodeDecoder.DecodeDictionary(ref metadata, ref index);
     }
 
     private static int GetDictionaryEndPositionIndex(ref byte[] metadataResponseMessage)
@@ -79,11 +70,11 @@ public class Magnet
         byte extensionMessageId = 0;
 
         var index = 0;
-        var extensionHandshakeResponsePayload = BencodeDecoder.DecodeDictionary(ref payload, ref index);
-        if (extensionHandshakeResponsePayload.TryGetValue("ut_metadata"u8.ToArray(), out var extensionMessageIdObj) &&
-            extensionMessageIdObj is long extensionMessageIdLong)
+        var handshakePayload = BencodeDecoder.DecodeDictionary(ref payload, ref index);
+        if (handshakePayload.TryGetValue("ut_metadata"u8.ToArray(), out var messageId) &&
+            messageId is long messageIdLong)
         {
-            extensionMessageId = (byte)extensionMessageIdLong;
+            extensionMessageId = (byte)messageIdLong;
         }
 
         if (extensionMessageId == 0)

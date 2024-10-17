@@ -2,16 +2,17 @@ using codecrafters_bittorrent.Extensions;
 
 namespace codecrafters_bittorrent;
 
-public class Torrent(byte[] torrentBytes)
+public class Torrent : Metainfo
 {
-    private Dictionary<byte[], object> TorrentDictionary => torrentBytes.ToDictionary();
-    private Dictionary<byte[], object> InfoDictionary => TorrentDictionary.ToInfoDictionary();
-    private byte[] PiecesInBytes => InfoDictionary.ToPiecesInBytes();
-    public byte[] InfoHash => InfoDictionary.ToInfoHash();
+    private readonly Dictionary<byte[], object> TorrentDictionary;
+
+    public Torrent(byte[] torrentBytes)
+    {
+        TorrentDictionary = torrentBytes.ToDictionary();
+        InfoDictionary = TorrentDictionary.ToInfoDictionary();
+    }
+
+    public override string TrackerUrl => TorrentDictionary.ToTrackerUrl();
     public string InfoHashHex => InfoHash.ToInfoHashHex();
-    public string TrackerUrl => TorrentDictionary.ToTrackerUrl();
     public string Name => InfoDictionary.ToName();
-    public long Length => InfoDictionary.ToLength();
-    public long PieceLength => InfoDictionary.ToPieceLength();
-    public List<string> PieceHashes => PiecesInBytes.ToPieceHashes();
 }
