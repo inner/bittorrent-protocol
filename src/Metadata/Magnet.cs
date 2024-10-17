@@ -3,7 +3,7 @@ using codecrafters_bittorrent.Connection;
 using codecrafters_bittorrent.Connection.Messages;
 using codecrafters_bittorrent.Extensions;
 
-namespace codecrafters_bittorrent.Metainfo;
+namespace codecrafters_bittorrent.Metadata;
 
 public class Magnet : Metainfo
 {

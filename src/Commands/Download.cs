@@ -1,5 +1,5 @@
 using codecrafters_bittorrent.Extensions;
-using codecrafters_bittorrent.Metainfo;
+using codecrafters_bittorrent.Metadata;
 
 namespace codecrafters_bittorrent.Commands;
 
@@ -17,8 +17,8 @@ public class Download : IBCommand
             leftLength: torrent.Length);
 
         var fileData = await NetworkStreamExtensions.DownloadConcurrently(peers, torrent);
-        
         await File.WriteAllBytesAsync(fileLocation, fileData);
+        
         Console.WriteLine($"Download completed: '{fileLocation}'.");
     }
 }

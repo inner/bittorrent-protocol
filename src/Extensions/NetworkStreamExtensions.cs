@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using codecrafters_bittorrent.Connection;
 using codecrafters_bittorrent.Connection.Messages;
-using codecrafters_bittorrent.Metainfo;
+using codecrafters_bittorrent.Metadata;
 
 namespace codecrafters_bittorrent.Extensions;
 
@@ -54,15 +54,12 @@ public static class NetworkStreamExtensions
         }
     }
 
-    public static async Task<byte[]> DownloadConcurrently(List<Peer> peers, Metainfo.Metainfo metainfo)
+    public static async Task<byte[]> DownloadConcurrently(List<Peer> peers, Metainfo metainfo)
     {
         var pieceQueue = new ConcurrentQueue<int>(Enumerable.Range(0, metainfo.PieceHashes.Count));
         var fileData = new byte[metainfo.Length];
-        var tasks = new List<Task>();
 
-        foreach (var peer in peers)
-        {
-            tasks.Add(Task.Run(async () =>
+        var tasks = peers.Select(peer => Task.Run(async () =>
             {
                 using var peerConnection = new PeerConnection(metainfo.InfoHash, peer);
                 var (ns, _) = await peerConnection.Handshake();
@@ -77,19 +74,20 @@ public static class NetworkStreamExtensions
                             metainfo.PieceLength,
                             metainfo.PieceHashes[pieceIndex],
                             pieceIndex);
-                        
+
                         piece.CopyTo(fileData, pieceIndex * metainfo.PieceLength);
+
                         Console.WriteLine($"Downloaded piece {pieceIndex} from peer '{peer.Ip}:{peer.Port}'");
                     }
                     catch (Exception ex)
                     {
+                        pieceQueue.Enqueue(pieceIndex);
                         Console.WriteLine(
                             $"Failed to download piece {pieceIndex} from peer '{peer.Ip}:{peer.Port}': {ex.Message}");
-                        pieceQueue.Enqueue(pieceIndex);
                     }
                 }
-            }));
-        }
+            }))
+            .ToList();
 
         await Task.WhenAll(tasks);
         return fileData;

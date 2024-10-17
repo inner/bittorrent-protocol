@@ -1,5 +1,5 @@
 using codecrafters_bittorrent.Extensions;
-using codecrafters_bittorrent.Metainfo;
+using codecrafters_bittorrent.Metadata;
 
 namespace codecrafters_bittorrent.Commands;
 
