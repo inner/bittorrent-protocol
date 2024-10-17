@@ -3,7 +3,7 @@ using codecrafters_bittorrent.Metadata;
 
 namespace codecrafters_bittorrent.Commands;
 
-public class Download : IBCommand
+public class Download : ICommand
 {
     public async Task Execute(string[] args)
     {

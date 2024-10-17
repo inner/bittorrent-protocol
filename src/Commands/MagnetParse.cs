@@ -2,7 +2,7 @@ using codecrafters_bittorrent.Extensions;
 
 namespace codecrafters_bittorrent.Commands;
 
-public class MagnetParse : IBCommand
+public class MagnetParse : ICommand
 {
     public Task Execute(string[] args)
     {

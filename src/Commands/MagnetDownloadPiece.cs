@@ -4,7 +4,7 @@ using codecrafters_bittorrent.Metadata;
 
 namespace codecrafters_bittorrent.Commands;
 
-public class MagnetDownloadPiece : IBCommand
+public class MagnetDownloadPiece : ICommand
 {
     public async Task Execute(string[] args)
     {

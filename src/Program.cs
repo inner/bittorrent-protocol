@@ -6,7 +6,7 @@ var programArgs = args
 
 var command = programArgs[0] ?? throw new ArgumentNullException(programArgs[0]);
 
-var commandDictionary = new Dictionary<string, IBCommand>
+var commandDictionary = new Dictionary<string, ICommand>
 {
     { "decode", new Decode() },
     { "info", new Info() },

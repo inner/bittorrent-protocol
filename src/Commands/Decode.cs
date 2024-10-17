@@ -4,7 +4,7 @@ using codecrafters_bittorrent.Bencoding;
 
 namespace codecrafters_bittorrent.Commands;
 
-public class Decode : IBCommand
+public class Decode : ICommand
 {
     public Task Execute(string[] args)
     {

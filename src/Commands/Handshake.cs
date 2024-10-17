@@ -4,7 +4,7 @@ using codecrafters_bittorrent.Metadata;
 
 namespace codecrafters_bittorrent.Commands;
 
-public class Handshake : IBCommand
+public class Handshake : ICommand
 {
     public async Task Execute(string[] args)
     {

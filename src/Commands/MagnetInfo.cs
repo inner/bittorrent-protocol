@@ -5,7 +5,7 @@ using codecrafters_bittorrent.Extensions;
 
 namespace codecrafters_bittorrent.Commands;
 
-public class MagnetInfo : IBCommand
+public class MagnetInfo : ICommand
 {
     public async Task Execute(string[] args)
     {

@@ -2,7 +2,7 @@ using codecrafters_bittorrent.Metadata;
 
 namespace codecrafters_bittorrent.Commands;
 
-public class Info : IBCommand
+public class Info : ICommand
 {
     public Task Execute(string[] args)
     {

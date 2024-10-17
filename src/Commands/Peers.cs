@@ -3,7 +3,7 @@ using codecrafters_bittorrent.Metadata;
 
 namespace codecrafters_bittorrent.Commands;
 
-public class Peers : IBCommand
+public class Peers : ICommand
 {
     public async Task Execute(string[] args)
     {
