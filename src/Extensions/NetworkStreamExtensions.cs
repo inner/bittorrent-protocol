@@ -66,7 +66,7 @@ public static class NetworkStreamExtensions
             {
                 using var peerConnection = new PeerConnection(metainfo.InfoHash, peer);
                 var (ns, _) = await peerConnection.Handshake();
-                ns.Unchoke();
+                ns.Unchoke(extensionEnabled: metainfo is Magnet);
 
                 while (pieceQueue.TryDequeue(out var pieceIndex))
                 {
