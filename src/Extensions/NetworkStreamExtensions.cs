@@ -119,14 +119,11 @@ public static class NetworkStreamExtensions
 
     public static bool SupportsExtensions(this byte[] handshakeResponseBuffer)
     {
-        // skip 20 bytes of protocol string ("19:BitTorrent protocol")
-        // take the reserved 8 bytes
         var reservedBytes = handshakeResponseBuffer
             .Skip(20)
             .Take(8)
             .ToArray();
 
-        // 0x10 = 0b00010000
         return (reservedBytes[5] & 0x10) != 0;
     }
 
