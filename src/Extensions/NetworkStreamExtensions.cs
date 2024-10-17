@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using codecrafters_bittorrent.Connection;
@@ -53,15 +54,45 @@ public static class NetworkStreamExtensions
         }
     }
 
-    private static void VerifyPieceIntegrity(byte[] pieceBytes, string originalHash, int pieceIndex)
+    public static async Task<byte[]> DownloadConcurrently(List<Peer> peers, Metainfo.Metainfo metainfo)
     {
-        if (!Convert.ToHexString(SHA1.HashData(pieceBytes))
-                .Equals(originalHash, StringComparison.CurrentCultureIgnoreCase))
+        var pieceQueue = new ConcurrentQueue<int>(Enumerable.Range(0, metainfo.PieceHashes.Count));
+        var fileData = new byte[metainfo.Length];
+        var tasks = new List<Task>();
+
+        foreach (var peer in peers)
         {
-            throw new InvalidOperationException($"Piece {pieceIndex} integrity verification failed");
+            tasks.Add(Task.Run(async () =>
+            {
+                using var peerConnection = new PeerConnection(metainfo.InfoHash, peer);
+                var (ns, _) = await peerConnection.Handshake();
+                ns.Unchoke();
+
+                while (pieceQueue.TryDequeue(out var pieceIndex))
+                {
+                    try
+                    {
+                        var piece = await ns.DownloadPiece(
+                            metainfo.Length,
+                            metainfo.PieceLength,
+                            metainfo.PieceHashes[pieceIndex],
+                            pieceIndex);
+                        
+                        piece.CopyTo(fileData, pieceIndex * metainfo.PieceLength);
+                        Console.WriteLine($"Downloaded piece {pieceIndex} from peer '{peer.Ip}:{peer.Port}'");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(
+                            $"Failed to download piece {pieceIndex} from peer '{peer.Ip}:{peer.Port}': {ex.Message}");
+                        pieceQueue.Enqueue(pieceIndex);
+                    }
+                }
+            }));
         }
 
-        Console.WriteLine($"Piece {pieceIndex} integrity verified");
+        await Task.WhenAll(tasks);
+        return fileData;
     }
 
     public static byte[] ReadMessage(this NetworkStream networkStream, PeerMessageType messageIdType)
@@ -75,23 +106,6 @@ public static class NetworkStreamExtensions
         var message = new byte[messageLength - 1];
         networkStream.ReadExactly(message, 0, message.Length);
         return message;
-    }
-
-    private static int ReadMessageLength(this NetworkStream networkStream)
-    {
-        var messageLength = new byte[4];
-        networkStream.ReadExactly(messageLength, 0, 4);
-
-        if (BitConverter.IsLittleEndian)
-            Array.Reverse(messageLength);
-
-        return BitConverter.ToInt32(messageLength.ToArray(), 0);
-    }
-
-    public static void SendInterested(this NetworkStream networkStream)
-    {
-        var interestedMessage = new byte[] { 0, 0, 0, 1, (byte)PeerMessageType.Interested };
-        networkStream.Write(interestedMessage);
     }
 
     public static void Unchoke(this NetworkStream networkStream, bool extensionEnabled = false)
@@ -116,5 +130,33 @@ public static class NetworkStreamExtensions
 
         // 0x10 = 0b00010000
         return (reservedBytes[5] & 0x10) != 0;
+    }
+
+    private static void VerifyPieceIntegrity(byte[] pieceBytes, string originalHash, int pieceIndex)
+    {
+        if (!Convert.ToHexString(SHA1.HashData(pieceBytes))
+                .Equals(originalHash, StringComparison.CurrentCultureIgnoreCase))
+        {
+            throw new InvalidOperationException($"Piece {pieceIndex} integrity verification failed");
+        }
+
+        Console.WriteLine($"Piece {pieceIndex} integrity verified");
+    }
+
+    private static int ReadMessageLength(this NetworkStream networkStream)
+    {
+        var messageLength = new byte[4];
+        networkStream.ReadExactly(messageLength, 0, 4);
+
+        if (BitConverter.IsLittleEndian)
+            Array.Reverse(messageLength);
+
+        return BitConverter.ToInt32(messageLength.ToArray(), 0);
+    }
+
+    private static void SendInterested(this NetworkStream networkStream)
+    {
+        var interestedMessage = new byte[] { 0, 0, 0, 1, (byte)PeerMessageType.Interested };
+        networkStream.Write(interestedMessage);
     }
 }
