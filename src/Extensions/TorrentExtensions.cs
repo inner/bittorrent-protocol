@@ -11,7 +11,7 @@ public static class TorrentExtensions
         if (encodedValue == null || encodedValue.Length == 0)
             throw new ArgumentNullException(nameof(encodedValue));
 
-        // increase if the first character is ASCII code 4 (EoT)
+        // increase if the first character is 0x04 (EoT)
         if (encodedValue[index] == 0x04)
             index++;
 
