@@ -33,4 +33,9 @@ public static class ExtensionHandshakeMessage
         message.AddRange(payloadBytes);
         return message.ToArray();
     }
+    
+    public static byte[] GetPayload(this byte[] message)
+    {
+        return message[5..];
+    }
 }

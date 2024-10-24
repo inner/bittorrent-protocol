@@ -33,7 +33,7 @@ public class MagnetHandshake : ICommand
         await networkStream.WriteAsync(extensionMessage);
 
         var extensionHandshakeResponse = networkStream.ReadMessage(PeerMessageType.Extension);
-        var payload = extensionHandshakeResponse[5..];
+        var payload = extensionHandshakeResponse.GetPayload();
 
         var index = 0;
         var extensionHandshakeResponsePayload = BencodeDecoder.DecodeDictionary(ref payload, ref index);

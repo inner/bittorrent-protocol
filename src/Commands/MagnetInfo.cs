@@ -33,7 +33,7 @@ public class MagnetInfo : ICommand
         await networkStream.WriteAsync(extensionMessage);
 
         var extensionHandshakeResponse = networkStream.ReadMessage(PeerMessageType.Extension);
-        var payload = extensionHandshakeResponse[5..];
+        var payload = extensionHandshakeResponse.GetPayload();
 
         byte? extensionMessageId = null!;
         var index = 0;

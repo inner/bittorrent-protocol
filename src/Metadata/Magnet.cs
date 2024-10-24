@@ -42,7 +42,7 @@ public class Magnet : Metainfo
             .GetResult();
 
         var extensionHandshakeResponse = ns.ReadMessage(PeerMessageType.Extension);
-        var payload = extensionHandshakeResponse[5..];
+        var payload = extensionHandshakeResponse.GetPayload();
         var extensionMessageId = GetExtensionMessageId(payload);
 
         var metadataRequestMessage = MetadataRequestMessage.Create(extensionMessageId, 0);
