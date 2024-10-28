@@ -6,6 +6,12 @@ public static class BlockRequestMessage
     {
         List<byte> message = [];
         
+        // this is fixed size length of the message
+        // 4 bytes for length (excluding the length itself),
+        // 1 byte for message type,
+        // 4 bytes for piece index,
+        // 4 bytes for block offset,
+        // 4 bytes for block size
         var lengthBytes = BitConverter.GetBytes(13);
         var pieceIndexArray = BitConverter.GetBytes(pieceIndex);
         var blockOffsetArray = BitConverter.GetBytes(blockOffset);
