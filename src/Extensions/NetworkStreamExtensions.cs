@@ -39,6 +39,9 @@ public static class NetworkStreamExtensions
                 Console.WriteLine($"\t[{i}] Block Offset: {blockOffset}, Block Size: {blockSize}");
                 var requestMessage = BlockRequestMessage.Create(pieceIndex, blockOffset, blockSize);
                 await ns.WriteAsync(requestMessage);
+                // In the context of the BitTorrent protocol, the first 8 bytes of a piece message typically contain
+                // metadata such as the message length and piece index. The actual piece data starts after these
+                // 8 bytes. By using `data[8..]`, the code extracts only the piece data, excluding the metadata.
                 var data = ns.ReadMessage(PeerMessageType.Piece);
                 pieceData.AddRange(data[8..]);
             }
