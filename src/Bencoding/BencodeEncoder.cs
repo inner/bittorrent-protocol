@@ -20,34 +20,34 @@ public static class BencodeEncoder
     private static byte[] EncodeString(byte[] value)
     {
         var length = Encoding.UTF8.GetBytes(value.Length.ToString());
-        var colon = new[] { (byte)':' };
+        var colon = new[] { BencodingIndicators.SemiColon };
         return Combine(length, colon, value);
     }
 
     private static byte[] EncodeInteger(long value)
     {
-        var prefix = new[] { (byte)'i' };
-        var suffix = new[] { (byte)'e' };
+        var prefix = new[] { BencodingIndicators.IntegerIndicator };
+        var suffix = new[] { BencodingIndicators.EndIndicator };
         var valueBytes = Encoding.UTF8.GetBytes(value.ToString());
         return Combine(prefix, valueBytes, suffix);
     }
 
     private static byte[] EncodeList(List<object> value)
     {
-        var bytes = new List<byte> { (byte)'l' };
+        var bytes = new List<byte> { BencodingIndicators.ListIndicator };
 
         foreach (var item in value)
         {
             bytes.AddRange(Encode(item));
         }
 
-        bytes.Add((byte)'e');
+        bytes.Add(BencodingIndicators.EndIndicator);
         return bytes.ToArray();
     }
 
     public static byte[] EncodeDictionary(Dictionary<byte[], object> value)
     {
-        var bytes = new List<byte> { (byte)'d' };
+        var bytes = new List<byte> { BencodingIndicators.DictionaryIndicator };
 
         foreach (var key in value.Keys)
         {
@@ -56,7 +56,7 @@ public static class BencodeEncoder
             bytes.AddRange(Encode(value[key]));
         }
 
-        bytes.Add((byte)'e');
+        bytes.Add(BencodingIndicators.EndIndicator);
         return bytes.ToArray();
     }
 
