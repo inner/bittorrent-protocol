@@ -79,8 +79,10 @@ public static class BencodeDecoder
         {
             if (x == null || y == null)
                 return x == y;
+            
             if (x.Length != y.Length)
                 return false;
+            
             for (var i = 0; i < x.Length; i++)
             {
                 if (x[i] != y[i])
@@ -94,16 +96,14 @@ public static class BencodeDecoder
         {
             if (obj == null)
                 return 0;
-            unchecked
+            
+            var hash = 17;
+            foreach (var b in obj)
             {
-                var hash = 17;
-                foreach (var b in obj)
-                {
-                    hash = hash * 31 + b;
-                }
-
-                return hash;
+                hash = hash * 31 + b;
             }
+
+            return hash;
         }
     }
 }
