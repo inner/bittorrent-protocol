@@ -12,27 +12,28 @@ public static class TrackerExtensions
     {
         return WebUtility.UrlDecode(magnet.Split("&tr=")[1]);
     }
-    
+
     public static byte[] GetInfoHash(this string magnet)
     {
-        var infoHash = magnet.Split("&dn=")[0].Split(":")[3];
-        
-        var infoHashBytes = new byte[infoHash.Length / 2];
+        var infoHashString = magnet.Split("&dn=")[0].Split(":")[3];
+
+        var infoHashBytes = new byte[infoHashString.Length / 2];
         for (var i = 0; i < infoHashBytes.Length; i++)
         {
-            infoHashBytes[i] = byte.Parse(infoHash.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber);
+            infoHashBytes[i] = byte.Parse(infoHashString.Substring(i * 2, 2),
+                System.Globalization.NumberStyles.HexNumber);
         }
 
         return infoHashBytes;
     }
-    
+
     public static async Task<List<Peer>> DiscoverPeers(string trackerUrl, byte[] infoHash, long leftLength)
     {
         var peersList = new List<Peer>();
-        var httpClient = new HttpClient();
+        using var httpClient = new HttpClient();
         var requestUri = new Uri(trackerUrl);
         var baseUri = requestUri.ToString();
-        
+
         var queryParameters = new Dictionary<string, string>
         {
             { "info_hash", HttpUtility.UrlEncode(infoHash) },
@@ -43,7 +44,7 @@ public static class TrackerExtensions
             { "left", leftLength.ToString() },
             { "compact", "1" }
         };
-        
+
         var queryStringBuilder = new StringBuilder();
         foreach (var kvp in queryParameters)
         {
@@ -59,7 +60,7 @@ public static class TrackerExtensions
 
         var response = await httpClient.GetAsync(fullUri);
         var responseContent = await response.Content.ReadAsByteArrayAsync();
-        
+
         var index = 0;
         var dict = BencodeDecoder.DecodeDictionary(ref responseContent, ref index);
 
@@ -83,10 +84,10 @@ public static class TrackerExtensions
         {
             Console.WriteLine("The 'peers' key was not found in the dictionary.");
         }
-        
+
         return peersList;
     }
-    
+
     public static string GeneratePeerId()
     {
         var random = new Random();
