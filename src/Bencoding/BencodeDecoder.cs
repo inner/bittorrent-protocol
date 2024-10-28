@@ -97,12 +97,18 @@ public static class BencodeDecoder
             if (obj == null)
                 return 0;
             
+            // Hash Update: For each byte, the hash is updated using the formula
+            // hash = hash * 37 + b. This formula combines the current hash
+            // value with the byte value. The multiplication by 37 is chosen.
             unchecked
             {
-                // Hash Update: For each byte, the hash is updated using the formula
-                // hash = hash * 37 + b. This formula combines the current hash
-                // value with the byte value. The multiplication by 37 is chosen.
-                return obj.Aggregate(23, (current, b) => current * 37 + b);
+                var hash = 23;
+                foreach (var b in obj)
+                {
+                    hash = hash * 37 + b;
+                }
+
+                return hash;
             }
         }
     }
