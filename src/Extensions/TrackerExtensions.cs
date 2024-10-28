@@ -16,8 +16,8 @@ public static class TrackerExtensions
     public static byte[] GetInfoHash(this string magnet)
     {
         var infoHashString = magnet.Split("&dn=")[0].Split(":")[3];
-
         var infoHashBytes = new byte[infoHashString.Length / 2];
+        
         for (var i = 0; i < infoHashBytes.Length; i++)
         {
             infoHashBytes[i] = byte.Parse(infoHashString.Substring(i * 2, 2),
@@ -29,10 +29,9 @@ public static class TrackerExtensions
 
     public static async Task<List<Peer>> DiscoverPeers(string trackerUrl, byte[] infoHash, long leftLength)
     {
-        var peersList = new List<Peer>();
+        var result = new List<Peer>();
         using var httpClient = new HttpClient();
-        var requestUri = new Uri(trackerUrl);
-        var baseUri = requestUri.ToString();
+        var baseUri = new Uri(trackerUrl).ToString();
 
         var queryParameters = new Dictionary<string, string>
         {
@@ -77,7 +76,7 @@ public static class TrackerExtensions
                 var ip = new IPAddress(ipBytes);
                 var port = BitConverter.ToUInt16(portBytes.Reverse().ToArray(), 0);
 
-                peersList.Add(new Peer(ip.ToString(), port));
+                result.Add(new Peer(ip.ToString(), port));
             }
         }
         else
@@ -85,7 +84,7 @@ public static class TrackerExtensions
             Console.WriteLine("The 'peers' key was not found in the dictionary.");
         }
 
-        return peersList;
+        return result;
     }
 
     public static string GeneratePeerId()
