@@ -1,0 +1,9 @@
+.codex/
+.git/
+.gitignore
+bin/
+obj/
+tmp/
+Dockerfile
+README.md
+SESSION.md
